@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Staff Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+<script>
+// Auth check
+if(!localStorage.getItem("staffToken")) {
+  window.location.href = "/login/login-staff.html";
+}
+</script>
+
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-green-700 text-white p-6">
+    <h2 class="text-2xl font-bold mb-8">Staff Panel</h2>
+
+    <ul class="space-y-4">
+      <li onclick="showSection('products')" class="hover:bg-green-600 p-2 rounded cursor-pointer">Products</li>
+      <li onclick="logout()" class="hover:bg-red-500 p-2 rounded cursor-pointer">Logout</li>
+    </ul>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 p-6">
+    <div id="products">
+      <h1 class="text-2xl font-bold mb-6">Manage Products</h1>
+
+      <!-- Add product -->
+      <form id="productForm" class="bg-white p-6 rounded-lg shadow mb-6 max-w-lg">
+        <input id="name" placeholder="Product name" class="w-full mb-3 p-2 border rounded" required />
+        <textarea id="description" placeholder="Description" class="w-full mb-3 p-2 border rounded"></textarea>
+        <input id="price" type="number" placeholder="Price" class="w-full mb-3 p-2 border rounded" required />
+        <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Product</button>
+      </form>
+
+      <!-- Product list -->
+      <div id="myProducts" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const token = localStorage.getItem("staffToken");
+
+// Section switching
+function showSection(sectionId) {
+  document.getElementById('products').classList.remove('hidden');
+}
+
+// Logout
+function logout() {
+  localStorage.removeItem("staffToken");
+  localStorage.removeItem("staffRole");
+  window.location.href = "/login/login-staff.html";
+}
+
+// Load shop products (staff sees only their shop products)
+async function loadMyProducts() {
+  const res = await fetch("/api/products/my", {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const products = await res.json();
+  const container = document.getElementById("myProducts");
+  container.innerHTML = "";
+
+  products.forEach(p => {
+    container.innerHTML += `
+      <div class="bg-white p-4 rounded-lg shadow">
+        <h3 class="font-bold">${p.name}</h3>
+        <p>${p.description}</p>
+        <p class="font-semibold mt-2">$${p.price}</p>
+        <button class="text-red-500 mt-2" onclick="deleteProduct(${p.id})">Delete</button>
+      </div>
+    `;
+  });
+}
+
+// Add product
+document.getElementById("productForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = document.getElementById("name").value;
+  const description = document.getElementById("description").value;
+  const price = document.getElementById("price").value;
+
+  await fetch("/api/products", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ name, description, price })
+  });
+
+  e.target.reset();
+  loadMyProducts();
+});
+
+// Delete product
+async function deleteProduct(id) {
+  if(!confirm("Delete this product?")) return;
+
+  await fetch(`/api/products/${id}`, {
+    method: "DELETE",
+    headers: { "Authorization": "Bearer " + token }
+  });
+
+  loadMyProducts();
+}
+
+// Initial load
+loadMyProducts();
+</script>
+
+</body>
+</html>

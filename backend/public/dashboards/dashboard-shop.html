@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shop Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+<!-- Auth check -->
+<script>
+if (!localStorage.getItem("token")) {
+  window.location.href = "login.html";
+}
+</script>
+
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-green-700 text-white p-6">
+    <h2 class="text-2xl font-bold mb-8">Shop Panel</h2>
+
+    <ul class="space-y-4">
+      <li onclick="showSection('products')" class="hover:bg-green-600 p-2 rounded cursor-pointer">My Products</li>
+      <li onclick="showSection('addProduct')" class="hover:bg-green-600 p-2 rounded cursor-pointer">Add Product</li>
+      <li onclick="showSection('staff')" class="hover:bg-green-600 p-2 rounded cursor-pointer">Manage Staff</li>
+      <li onclick="logout()" class="hover:bg-red-500 p-2 rounded cursor-pointer">Logout</li>
+    </ul>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 p-6">
+
+    <!-- Add Product Form -->
+    <div id="addProduct">
+      <h1 class="text-2xl font-bold mb-6">Add Product</h1>
+      <form id="productForm" class="bg-white p-6 rounded-lg shadow mb-6 max-w-lg">
+        <input id="name" placeholder="Product name" class="w-full mb-3 p-2 border rounded" required />
+        <textarea id="description" placeholder="Description" class="w-full mb-3 p-2 border rounded"></textarea>
+        <input id="price" type="number" placeholder="Price" class="w-full mb-3 p-2 border rounded" required />
+        <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Product</button>
+      </form>
+    </div>
+
+    <!-- Product List -->
+    <div id="products" class="hidden">
+      <h1 class="text-2xl font-bold mb-6">My Products</h1>
+      <div id="myProducts" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </div>
+
+    <!-- Staff Management -->
+    <div id="staff" class="hidden">
+      <h1 class="text-2xl font-bold mb-6">Manage Staff</h1>
+
+      <!-- Add Staff Form -->
+      <form id="staffForm" class="bg-white p-6 rounded-lg shadow mb-6 max-w-lg">
+        <input id="staffName" placeholder="Staff Name" class="w-full mb-2 p-2 border rounded" required />
+        <input id="staffEmail" placeholder="Staff Email" class="w-full mb-2 p-2 border rounded" required />
+        <input id="staffPassword" placeholder="Password" type="password" class="w-full mb-2 p-2 border rounded" required />
+        <select id="staffRole" class="w-full mb-2 p-2 border rounded">
+          <option value="staff">Staff</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Staff</button>
+      </form>
+
+      <!-- Staff List -->
+      <div id="staffList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+
+// Section switching
+function showSection(sectionId) {
+  document.getElementById('products').classList.add('hidden');
+  document.getElementById('addProduct').classList.add('hidden');
+  document.getElementById('staff').classList.add('hidden');
+
+  document.getElementById(sectionId).classList.remove('hidden');
+}
+
+// Logout
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "/login/login.html";
+}
+
+// ------------------ PRODUCTS ------------------
+async function loadMyProducts() {
+  const res = await fetch("/api/products/my", {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const products = await res.json();
+  const container = document.getElementById("myProducts");
+  container.innerHTML = "";
+
+  products.forEach(p => {
+    container.innerHTML += `
+      <div class="bg-white p-4 rounded-lg shadow">
+        <h3 class="font-bold">${p.name}</h3>
+        <p>${p.description}</p>
+        <p class="font-semibold mt-2">$${p.price}</p>
+        <button class="text-red-500 mt-2" onclick="deleteProduct(${p.id})">Delete</button>
+      </div>
+    `;
+  });
+}
+
+document.getElementById("productForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = document.getElementById("name").value;
+  const description = document.getElementById("description").value;
+  const price = document.getElementById("price").value;
+
+  await fetch("/api/products", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ name, description, price })
+  });
+
+  e.target.reset();
+  loadMyProducts();
+});
+
+async function deleteProduct(id) {
+  if(!confirm("Delete this product?")) return;
+
+  await fetch(`/api/products/${id}`, {
+    method: "DELETE",
+    headers: { "Authorization": "Bearer " + token }
+  });
+
+  loadMyProducts();
+}
+
+// ------------------ STAFF ------------------
+async function loadStaff() {
+  const res = await fetch("/api/staff/my", {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const staff = await res.json();
+  const container = document.getElementById("staffList");
+  container.innerHTML = "";
+
+  staff.forEach(s => {
+    container.innerHTML += `
+      <div class="bg-white p-4 rounded-lg shadow">
+        <h3 class="font-bold">${s.name}</h3>
+        <p>${s.email}</p>
+        <p class="italic">${s.role}</p>
+        <button class="text-red-500 mt-2" onclick="deleteStaff(${s.id})">Delete</button>
+      </div>
+    `;
+  });
+}
+
+document.getElementById("staffForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = document.getElementById("staffName").value;
+  const email = document.getElementById("staffEmail").value;
+  const password = document.getElementById("staffPassword").value;
+  const role = document.getElementById("staffRole").value;
+
+  const res = await fetch("/api/staff/create", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ name, email, password, role })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+  e.target.reset();
+  loadStaff();
+});
+
+async function deleteStaff(id) {
+  if(!confirm("Delete this staff?")) return;
+
+  const res = await fetch(`/api/staff/${id}`, {
+    method: "DELETE",
+    headers: { "Authorization": "Bearer " + token }
+  });
+
+  const data = await res.json();
+  alert(data.message);
+  loadStaff();
+}
+
+// Initial load
+loadMyProducts();
+loadStaff();
+</script>
+
+</body>
+</html>
