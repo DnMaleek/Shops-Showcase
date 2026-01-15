@@ -8,7 +8,7 @@ const router = express.Router();
    CREATE PRODUCT
 ========================= */
 router.post("/", auth, async (req, res) => {
-  const { name, price, description } = req.body;
+  const { name, description, price } = req.body;
 
   if (req.user.type !== "shop" && req.user.type !== "staff") {
     return res.status(403).json({ message: "Not allowed" });
