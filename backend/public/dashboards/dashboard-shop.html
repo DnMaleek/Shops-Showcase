@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Shop Dashboard</title>
-  
+
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
@@ -14,7 +14,6 @@
 
 <body class="bg-gray-100">
 
-<!-- Auth check -->
 <script>
 if (!localStorage.getItem("token")) {
   window.location.href = "login.html";
@@ -38,9 +37,10 @@ if (!localStorage.getItem("token")) {
   <!-- Main -->
   <main class="flex-1 p-6">
 
-    <!-- Add Product Form -->
-    <div id="addProduct">
+    <!-- Add Product -->
+    <div id="addProduct" class="hidden">
       <h1 class="text-2xl font-bold mb-6">Add Product</h1>
+
       <form id="productForm" class="bg-white p-6 rounded-lg shadow mb-6 max-w-lg">
         <input id="name" placeholder="Product name" class="w-full mb-3 p-2 border rounded" required />
         <textarea id="description" placeholder="Description" class="w-full mb-3 p-2 border rounded"></textarea>
@@ -49,29 +49,27 @@ if (!localStorage.getItem("token")) {
       </form>
     </div>
 
-    <!-- Product List -->
-    <div id="products" class="hidden">
+    <!-- Products -->
+    <div id="products">
       <h1 class="text-2xl font-bold mb-6">My Products</h1>
       <div id="myProducts" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
     </div>
 
-    <!-- Staff Management -->
+    <!-- Staff -->
     <div id="staff" class="hidden">
       <h1 class="text-2xl font-bold mb-6">Manage Staff</h1>
 
-      <!-- Add Staff Form -->
       <form id="staffForm" class="bg-white p-6 rounded-lg shadow mb-6 max-w-lg">
         <input id="staffName" placeholder="Staff Name" class="w-full mb-2 p-2 border rounded" required />
         <input id="staffEmail" placeholder="Staff Email" class="w-full mb-2 p-2 border rounded" required />
-        <input id="staffPassword" placeholder="Password" type="password" class="w-full mb-2 p-2 border rounded" required />
+        <input id="staffPassword" type="password" placeholder="Password" class="w-full mb-2 p-2 border rounded" required />
         <select id="staffRole" class="w-full mb-2 p-2 border rounded">
           <option value="staff">Staff</option>
           <option value="admin">Admin</option>
         </select>
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Staff</button>
+        <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Staff</button>
       </form>
 
-      <!-- Staff List -->
       <div id="staffList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
     </div>
 
@@ -81,131 +79,165 @@ if (!localStorage.getItem("token")) {
 <script>
 const token = localStorage.getItem("token");
 
-// Section switching
+/* ---------- SECTION SWITCHING ---------- */
 function showSection(sectionId) {
-  document.getElementById('products').classList.add('hidden');
-  document.getElementById('addProduct').classList.add('hidden');
-  document.getElementById('staff').classList.add('hidden');
+  ["products","addProduct","staff"].forEach(id =>
+    document.getElementById(id).classList.add("hidden")
+  );
+  document.getElementById(sectionId).classList.remove("hidden");
 
-  document.getElementById(sectionId).classList.remove('hidden');
+  if(sectionId === "products") loadMyProducts();
+  if(sectionId === "staff") loadStaff();
 }
 
-// Logout
+/* ---------- LOGOUT ---------- */
 function logout() {
   localStorage.removeItem("token");
   window.location.href = "/login/login.html";
 }
 
-// ------------------ PRODUCTS ------------------
+/* ---------- PRODUCTS ---------- */
 async function loadMyProducts() {
-  const res = await fetch("/api/products/my", {
-    headers: { "Authorization": "Bearer " + token }
-  });
-  const products = await res.json();
   const container = document.getElementById("myProducts");
-  container.innerHTML = "";
+  container.innerHTML = "<p class='text-gray-500'>Loading...</p>";
 
-  products.forEach(p => {
-    container.innerHTML += `
-      <div class="bg-white p-4 rounded-lg shadow">
-        <h3 class="font-bold">${p.name}</h3>
-        <p>${p.description}</p>
-        <p class="font-semibold mt-2">$${p.price}</p>
-        <button class="text-red-500 mt-2" onclick="deleteProduct(${p.id})">Delete</button>
-      </div>
-    `;
-  });
+  try {
+    const res = await fetch("/api/products/my", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    const products = await res.json();
+    container.innerHTML = "";
+
+    if (!products.length) {
+      container.innerHTML = "<p class='text-gray-500'>No products added yet.</p>";
+      return;
+    }
+
+    products.forEach(p => {
+      container.innerHTML += `
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="font-bold">${p.name}</h3>
+          <p class="text-sm text-gray-600">${p.description || ""}</p>
+          <p class="font-semibold mt-2">$${Number(p.price).toFixed(2)}</p>
+          <div class="flex gap-3 mt-3">
+            <button class="text-blue-600" onclick="editProduct(${p.id},'${p.name}','${p.description}','${p.price}')">Edit</button>
+            <button class="text-red-500" onclick="deleteProduct(${p.id})">Delete</button>
+          </div>
+        </div>
+      `;
+    });
+  } catch {
+    container.innerHTML = "<p class='text-red-500'>Failed to load products.</p>";
+  }
 }
 
 document.getElementById("productForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const name = document.getElementById("name").value;
-  const description = document.getElementById("description").value;
-  const price = document.getElementById("price").value;
-
   await fetch("/api/products", {
     method: "POST",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
+      Authorization: "Bearer " + token
     },
-    body: JSON.stringify({ name, description, price })
+    body: JSON.stringify({
+      name: name.value,
+      description: description.value,
+      price: price.value
+    })
   });
-
   e.target.reset();
-  loadMyProducts();
+  showSection("products");
 });
 
-async function deleteProduct(id) {
-  if(!confirm("Delete this product?")) return;
+async function editProduct(id, name, description, price) {
+  const newName = prompt("Product name:", name);
+  if (!newName) return;
 
   await fetch(`/api/products/${id}`, {
-    method: "DELETE",
-    headers: { "Authorization": "Bearer " + token }
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token
+    },
+    body: JSON.stringify({ name: newName, description, price })
   });
 
   loadMyProducts();
 }
 
-// ------------------ STAFF ------------------
-async function loadStaff() {
-  const res = await fetch("/api/staff/my", {
-    headers: { "Authorization": "Bearer " + token }
+async function deleteProduct(id) {
+  if (!confirm("Delete this product?")) return;
+  await fetch(`/api/products/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: "Bearer " + token }
   });
-  const staff = await res.json();
-  const container = document.getElementById("staffList");
-  container.innerHTML = "";
+  loadMyProducts();
+}
 
-  staff.forEach(s => {
-    container.innerHTML += `
-      <div class="bg-white p-4 rounded-lg shadow">
-        <h3 class="font-bold">${s.name}</h3>
-        <p>${s.email}</p>
-        <p class="italic">${s.role}</p>
-        <button class="text-red-500 mt-2" onclick="deleteStaff(${s.id})">Delete</button>
-      </div>
-    `;
-  });
+/* ---------- STAFF ---------- */
+async function loadStaff() {
+  const box = document.getElementById("staffList");
+  box.innerHTML = "<p class='text-gray-500'>Loading...</p>";
+
+  try {
+    const res = await fetch("/api/staff/my", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    const staff = await res.json();
+    box.innerHTML = "";
+
+    if (!staff.length) {
+      box.innerHTML = "<p class='text-gray-500'>No staff added.</p>";
+      return;
+    }
+
+    staff.forEach(s => {
+      box.innerHTML += `
+        <div class="bg-white p-4 rounded-lg shadow">
+          <h3 class="font-bold">${s.name}</h3>
+          <p>${s.email}</p>
+          <span class="inline-block mt-1 px-2 py-1 text-xs rounded bg-gray-200">${s.role}</span>
+          <button class="block text-red-500 mt-3" onclick="deleteStaff(${s.id})">Delete</button>
+        </div>
+      `;
+    });
+  } catch {
+    box.innerHTML = "<p class='text-red-500'>Failed to load staff.</p>";
+  }
 }
 
 document.getElementById("staffForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const name = document.getElementById("staffName").value;
-  const email = document.getElementById("staffEmail").value;
-  const password = document.getElementById("staffPassword").value;
-  const role = document.getElementById("staffRole").value;
-
   const res = await fetch("/api/staff/create", {
     method: "POST",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
+      Authorization: "Bearer " + token
     },
-    body: JSON.stringify({ name, email, password, role })
+    body: JSON.stringify({
+      name: staffName.value,
+      email: staffEmail.value,
+      password: staffPassword.value,
+      role: staffRole.value
+    })
   });
 
-  const data = await res.json();
-  alert(data.message);
+  alert((await res.json()).message);
   e.target.reset();
   loadStaff();
 });
 
 async function deleteStaff(id) {
-  if(!confirm("Delete this staff?")) return;
-
-  const res = await fetch(`/api/staff/${id}`, {
+  if (!confirm("Delete this staff member?")) return;
+  await fetch(`/api/staff/${id}`, {
     method: "DELETE",
-    headers: { "Authorization": "Bearer " + token }
+    headers: { Authorization: "Bearer " + token }
   });
-
-  const data = await res.json();
-  alert(data.message);
   loadStaff();
 }
 
-// Initial load
-loadMyProducts();
-loadStaff();
+/* ---------- DEFAULT ---------- */
+showSection("products");
 </script>
 
 </body>
