@@ -37,3 +37,23 @@ CREATE TABLE products (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
 );
+
+ALTER TABLE products
+ADD COLUMN category VARCHAR(100),
+ADD COLUMN stock INT DEFAULT 0,
+ADD COLUMN sku VARCHAR(100),
+ADD COLUMN discount DECIMAL(5,2) DEFAULT 0,
+ADD COLUMN main_image VARCHAR(255),
+ADD COLUMN status ENUM('active','inactive') DEFAULT 'active';
+
+
+CREATE TABLE product_images (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  product_id INT NOT NULL,
+  image_path VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+
+

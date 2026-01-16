@@ -13,8 +13,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 👉 Serve public folder
+// Serve static folders
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // 🔥 REQUIRED
 
 // APIs
 app.use("/api/users", userAuthRoutes);
