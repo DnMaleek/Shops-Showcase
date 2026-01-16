@@ -162,11 +162,13 @@ document.getElementById("staffLoginForm").addEventListener("submit", async (e) =
   });
 
   const data = await res.json();
+      console.log(data)
 
   if(res.ok) {
     // store JWT and role in localStorage
     localStorage.setItem("staffToken", data.token);
-    localStorage.setItem("staffRole", data.role); // staff/admin
+    localStorage.setItem("staffRole", data.staff.type); // staff/admin
+
     window.location.href = "/dashboards/dashboard-staff.html";
   } else {
     document.getElementById("error").innerText = data.message;

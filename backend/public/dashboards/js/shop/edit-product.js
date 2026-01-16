@@ -81,10 +81,8 @@ document.getElementById('editProductForm').addEventListener('submit', async (e) 
     if (response.ok) {
       showModal('Success', 'Product updated successfully!', 'success');
       closeEditModal();
-      
+      closeEditModal()
       loadMyProducts();
-      // Reload dashboard stats
-      loadDashboardStats();
     } else {
       showModal('Error', data.message || 'Failed to update product', 'error');
     }

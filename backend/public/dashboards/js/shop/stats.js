@@ -1,9 +1,11 @@
 /* ---------- DASHBOARD STATS ---------- */
+const token1 = localStorage.getItem('token')
+
 async function loadDashboardStats() {
   try {
     // Load products count
     const productsRes = await fetch("/api/products/my", {
-      headers: { Authorization: "Bearer " + token }
+      headers: { Authorization: "Bearer " + token1 }
     });
     const products = await productsRes.json();
     document.getElementById("totalProducts").textContent = products.length;
@@ -22,3 +24,4 @@ async function loadDashboardStats() {
     console.error("Failed to load dashboard stats:", error);
   }
 }
+loadDashboardStats();

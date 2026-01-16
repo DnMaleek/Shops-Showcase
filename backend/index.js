@@ -47,5 +47,5 @@ app.use((err, req, res, next) => {
 
 
 app.listen(5000, () => {
-  console.log("🚀 Server running on port 5000");
+  console.log(` Server running... Visit http://localhost:5000`);
 });

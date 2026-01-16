@@ -89,7 +89,7 @@ let allLogs = [];
         }
 
         loadLogs();
-        setInterval(loadLogs, 300);
+        setInterval(loadLogs, 30000);
 
         const shop = JSON.parse(localStorage.getItem('shop'));
         document.getElementById('shop_name').innerText = shop.shop_name;

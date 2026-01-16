@@ -38,6 +38,7 @@ document.getElementById("productForm").addEventListener("submit", async e => {
     alert("Product added successfully!");
     e.target.reset();
     showSection("products");
+    closeAddProductModal()
   } else {
     alert(data.message || data.error || "Failed to add product");
   }
