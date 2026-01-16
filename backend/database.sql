@@ -46,6 +46,8 @@ ADD COLUMN discount DECIMAL(5,2) DEFAULT 0,
 ADD COLUMN main_image VARCHAR(255),
 ADD COLUMN status ENUM('active','inactive') DEFAULT 'active';
 
+ALTER TABLE products
+ADD COLUMN brand VARCHAR(100);
 
 CREATE TABLE product_images (
   id INT AUTO_INCREMENT PRIMARY KEY,

@@ -23,7 +23,9 @@ router.post(
       category,
       stock,
       sku,
-      discount_price
+      discount_price,
+      brand,
+      status
     } = req.body;
 
     if (req.user.type !== "shop" && req.user.type !== "staff") {
@@ -43,17 +45,19 @@ router.post(
     try {
       const [result] = await db.query(
         `INSERT INTO products
-         (shop_id, name, price, description, category, stock, sku, discount, main_image)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (shop_id, name, price, description, category, stock, sku, discount, brand, status, main_image)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           shopId,
           name,
           price,
-          description,
-          category,
-          stock,
-          sku,
-          discount_price,
+          description || null,
+          category || null,
+          stock || 0,
+          sku || null,
+          discount_price || null,
+          brand || null,
+          status || "active",
           mainImage
         ]
       );
@@ -135,23 +139,24 @@ router.put('/:id', auth, upload.fields([
   const shopId = req.user.type === 'shop' ? req.user.id : req.user.shop_id;
 
   try {
-    const [product] = await db.query(
+    // Fetch existing product
+    const [products] = await db.query(
       'SELECT * FROM products WHERE id = ? AND shop_id = ?',
       [productId, shopId]
     );
 
-    if (product.length === 0) {
+    if (products.length === 0) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const p = product[0];
+    const p = products[0];
 
-    // Prepare updated data
+    // Prepare updated data (keep old values if not provided)
     const {
       name,
       description,
       price,
-      discount_price,
+      discount,  // make sure column name matches DB
       stock,
       category,
       brand,
@@ -159,30 +164,44 @@ router.put('/:id', auth, upload.fields([
       status
     } = req.body;
 
-    // Images
-    const main_image = req.files['main_image'] ? req.files['main_image'][0].filename : p.main_image;
-    let gallery = p.gallery_images ? JSON.parse(p.gallery_images) : [];
-    if (req.files['gallery']) {
-      gallery = req.files['gallery'].map(f => f.filename);
-    }
+    // Handle main image
+    const main_image = req.files['main_image'] 
+      ? req.files['main_image'][0].filename 
+      : p.main_image;
 
+    // Update product fields (without gallery)
     await db.query(
-      `UPDATE products SET name=?, description=?, price=?, discount_price=?, stock=?, category=?, brand=?, sku=?, status=?, main_image=?, gallery_images=? WHERE id=?`,
+      `UPDATE products 
+       SET name=?, description=?, price=?, discount=?, stock=?, category=?, brand=?, sku=?, status=?, main_image=? 
+       WHERE id=?`,
       [
         name || p.name,
         description || p.description,
         price || p.price,
-        discount_price || p.discount_price,
+        discount || p.discount || 0, // use discount_price
         stock || p.stock,
         category || p.category,
         brand || p.brand,
         sku || p.sku,
         status || p.status,
         main_image,
-        JSON.stringify(gallery),
         productId
       ]
     );
+
+    // Handle gallery images separately
+    if (req.files['gallery']) {
+      // Remove old gallery images for this product
+      await db.query("DELETE FROM product_images WHERE product_id = ?", [productId]);
+
+      // Insert new gallery images
+      for (const file of req.files['gallery']) {
+        await db.query(
+          "INSERT INTO product_images (product_id, image_path) VALUES (?, ?)",
+          [productId, file.filename]
+        );
+      }
+    }
 
     res.json({ message: 'Product updated successfully' });
   } catch (err) {

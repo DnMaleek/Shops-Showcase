@@ -39,7 +39,7 @@ document.getElementById("productForm").addEventListener("submit", async e => {
     e.target.reset();
     showSection("products");
   } else {
-    alert(data.message || "Failed to add product");
+    alert(data.message || data.error || "Failed to add product");
   }
 });
 
@@ -117,7 +117,7 @@ async function loadMyProducts() {
                   <i class="fas fa-eye mr-1"></i>View
                 </button>
 
-                <button onclick='openEditModal(${p.id}, "${cleanName}", "${cleanDesc}", "${p.price}")'
+                <button onclick='openEditModal(${JSON.stringify(p)})'
                   class="bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 transition text-sm font-semibold">
                   <i class="fas fa-edit mr-1"></i>Edit
                 </button>

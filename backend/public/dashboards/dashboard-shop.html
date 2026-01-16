@@ -23,6 +23,20 @@
       background-color: rgba(255, 255, 255, 0.2);
       border-left: 4px solid white;
     }
+    .dropdown-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .dropdown-menu.active {
+      max-height: 200px;
+    }
+    .dropdown-arrow {
+      transition: transform 0.3s ease;
+    }
+    .dropdown-arrow.rotated {
+      transform: rotate(180deg);
+    }
     .stat-card {
       transition: transform 0.2s ease;
     }
@@ -95,7 +109,7 @@ if (!localStorage.getItem("token")) {
 </div>
 
 <!-- Overlay for mobile menu -->
-<div id="menuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
+<div id="menuOverlay" class="fixed inset-0 bg-black/10 backdrop-blur-sm z-40 hidden lg:hidden"></div>
 
 <div class="flex min-h-screen">
 
@@ -106,7 +120,7 @@ if (!localStorage.getItem("token")) {
         <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
           <i class="fas fa-store text-xl"></i>
         </div>
-        <h2 class="text-xl font-bold" id="shop_name">Shop Panel</h2>
+        <h2 class="text-xl font-bold" id="side_bar">Shop Panel</h2>
       </div>
 
       <nav class="space-y-2">
@@ -122,9 +136,24 @@ if (!localStorage.getItem("token")) {
           <i class="fas fa-plus-circle w-5"></i>
           <span>Add Product</span>
         </div>
-        <div onclick="showSection('staff', this)" class="sidebar-item p-3 rounded-lg cursor-pointer flex items-center gap-3">
-          <i class="fas fa-users w-5"></i>
-          <span>Manage Staff</span>
+        <div class="sidebar-item-parent">
+          <div onclick="toggleDropdown(this)" class="sidebar-item p-3 rounded-lg cursor-pointer flex items-center gap-3 justify-between">
+            <div class="flex items-center gap-3">
+              <i class="fas fa-users w-5"></i>
+              <span>Manage Staff</span>
+            </div>
+            <i class="fas fa-chevron-down dropdown-arrow text-sm"></i>
+          </div>
+          <div class="dropdown-menu pl-8">
+            <div onclick="showSection('addStaff', this); event.stopPropagation();" class="sidebar-item p-2 rounded-lg cursor-pointer flex items-center gap-3 text-sm">
+              <i class="fas fa-user-plus w-4"></i>
+              <span>Add Staff</span>
+            </div>
+            <div onclick="showSection('viewStaff', this); event.stopPropagation();" class="sidebar-item p-2 rounded-lg cursor-pointer flex items-center gap-3 text-sm">
+              <i class="fas fa-list w-4"></i>
+              <span>View All Staff</span>
+            </div>
+          </div>
         </div>
         <div onclick="showSection('settings', this)" class="sidebar-item p-3 rounded-lg cursor-pointer flex items-center gap-3">
           <i class="fas fa-cog w-5"></i>
@@ -215,7 +244,7 @@ if (!localStorage.getItem("token")) {
               <div class="text-xs lg:text-sm text-gray-600">Expand your inventory</div>
             </div>
           </button>
-          <button onclick="showSection('staff')" class="flex items-center gap-3 p-3 lg:p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition">
+          <button onclick="showSection('addStaff')" class="flex items-center gap-3 p-3 lg:p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition">
             <div class="w-8 h-8 lg:w-10 lg:h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
               <i class="fas fa-user-plus text-white text-sm lg:text-base"></i>
             </div>
@@ -360,15 +389,15 @@ if (!localStorage.getItem("token")) {
       <div id="myProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"></div>
     </div>
 
-    <!-- Staff -->
-    <div id="staff" class="hidden">
+    <!-- Add Staff -->
+    <div id="addStaff" class="hidden">
       <div class="mb-4 lg:mb-6">
-        <h1 class="text-2xl lg:text-3xl font-bold text-gray-800">Manage Staff</h1>
-        <p class="text-gray-600 mt-1 text-sm lg:text-base">Add and manage your team members</p>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-800">Add Staff Member</h1>
+        <p class="text-gray-600 mt-1 text-sm lg:text-base">Add a new team member to your shop</p>
       </div>
 
-      <form id="staffForm" class="bg-white p-4 lg:p-8 rounded-xl shadow-md mb-6 lg:mb-8 max-w-2xl">
-        <h2 class="text-lg lg:text-xl font-bold text-gray-800 mb-4">Add New Staff Member</h2>
+      <form id="staffForm" class="bg-white p-4 lg:p-8 rounded-xl shadow-md max-w-2xl">
+        <h2 class="text-lg lg:text-xl font-bold text-gray-800 mb-4">Staff Information</h2>
         
         <div class="mb-4">
           <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
@@ -396,15 +425,29 @@ if (!localStorage.getItem("token")) {
           </select>
         </div>
         
-        <button type="submit" class="bg-green-600 text-white px-6 py-2.5 lg:py-3 rounded-lg font-semibold hover:bg-green-700 transition text-sm lg:text-base w-full sm:w-auto">
+        <div class="flex gap-3">
+          <button type="submit" class="bg-green-600 text-white px-6 py-2.5 lg:py-3 rounded-lg font-semibold hover:bg-green-700 transition text-sm lg:text-base">
+            <i class="fas fa-user-plus mr-2"></i>Add Staff Member
+          </button>
+          <button type="button" onclick="showSection('viewStaff')" class="bg-gray-200 px-6 py-2.5 lg:py-3 rounded-lg font-semibold hover:bg-gray-300 transition text-sm lg:text-base">
+            View All Staff
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- View Staff -->
+    <div id="viewStaff" class="hidden">
+      <div class="mb-4 lg:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 class="text-2xl lg:text-3xl font-bold text-gray-800">Staff Members</h1>
+          <p class="text-gray-600 mt-1 text-sm lg:text-base">View and manage your team members</p>
+        </div>
+        <button onclick="showSection('addStaff')" class="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition text-sm lg:text-base w-full sm:w-auto">
           <i class="fas fa-user-plus mr-2"></i>Add Staff Member
         </button>
-      </form>
-
-      <div>
-        <h2 class="text-lg lg:text-xl font-bold text-gray-800 mb-4">Staff Members</h2>
-        <div id="staffList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"></div>
       </div>
+      <div id="staffList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"></div>
     </div>
 
     <!-- Shop Settings -->
@@ -620,10 +663,16 @@ if (!localStorage.getItem("token")) {
 <script src="js/shop/staffs.js"></script>
 <script src="js/shop/settings.js"></script>
 <script src="js/shop/view-product.js"></script>
+<script src="js/shop/stats.js"></script>
+<script src="js/shop/logout.js"></script>
+<script src="js/shop/edit-product.js"></script>
+
 <script>
 const shop = JSON.parse(localStorage.getItem("shop"));
+console.log(shop);
 document.getElementById('shop_name').innerText = shop.shop_name;
 document.getElementById('shop_name_mobile').innerText = shop.shop_name;
+document.getElementById('side_bar').innerText = shop.shop_name;
 
 const token = localStorage.getItem("token");
 
@@ -641,6 +690,25 @@ menuOverlay?.addEventListener('click', () => {
   sidebar.classList.remove('active');
   menuOverlay.classList.add('hidden');
 });
+
+/* ---------- DROPDOWN TOGGLE ---------- */
+function toggleDropdown(element) {
+  const parent = element.parentElement;
+  const dropdown = parent.querySelector('.dropdown-menu');
+  const arrow = element.querySelector('.dropdown-arrow');
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-menu').forEach(menu => {
+    if (menu !== dropdown) {
+      menu.classList.remove('active');
+      menu.parentElement.querySelector('.dropdown-arrow')?.classList.remove('rotated');
+    }
+  });
+  
+  // Toggle current dropdown
+  dropdown.classList.toggle('active');
+  arrow.classList.toggle('rotated');
+}
 
 /* ---------- MODAL FUNCTIONS ---------- */
 function showModal(title, message, type = 'info', confirmCallback = null) {
@@ -687,138 +755,6 @@ function showModal(title, message, type = 'info', confirmCallback = null) {
 
 function closeModal() {
   document.getElementById('modal').classList.add('hidden');
-}
-
-/* ---------- EDIT PRODUCT MODAL ---------- */
-let currentEditProduct = null;
-
-function openEditModal(product) {
-  currentEditProduct = product.id;
-
-  // Populate all fields with product data
-  document.getElementById('editProductId').value = product.id || '';
-  document.getElementById('editName').value = product.name || '';
-  document.getElementById('editDescription').value = product.description || '';
-  document.getElementById('editPrice').value = product.price || 0;
-  document.getElementById('editDiscountPrice').value = product.discount_price || '';
-  document.getElementById('editStock').value = product.stock || 0;
-  document.getElementById('editCategory').value = product.category || '';
-  document.getElementById('editBrand').value = product.brand || '';
-  document.getElementById('editSKU').value = product.sku || '';
-  document.getElementById('editStatus').value = product.status || 'active';
-
-  // Clear file inputs
-  document.getElementById('editMainImage').value = '';
-  document.getElementById('editGallery').value = '';
-
-  // Show modal
-  document.getElementById('editModal').classList.remove('hidden');
-}
-
-function closeEditModal() {
-  document.getElementById('editModal').classList.add('hidden');
-  currentEditProduct = null;
-}
-
-// Edit form submission
-document.getElementById('editProductForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const productId = document.getElementById('editProductId').value;
-  
-  if (!productId) {
-    showModal('Error', 'Product ID is missing', 'error');
-    return;
-  }
-
-  const formData = new FormData();
-  
-  // Add all form fields
-  formData.append('name', document.getElementById('editName').value);
-  formData.append('description', document.getElementById('editDescription').value);
-  formData.append('price', document.getElementById('editPrice').value);
-  formData.append('discount_price', document.getElementById('editDiscountPrice').value || '');
-  formData.append('stock', document.getElementById('editStock').value || 0);
-  formData.append('category', document.getElementById('editCategory').value || '');
-  formData.append('brand', document.getElementById('editBrand').value || '');
-  formData.append('sku', document.getElementById('editSKU').value || '');
-  formData.append('status', document.getElementById('editStatus').value || 'active');
-
-  // Add main image if selected
-  const mainImageInput = document.getElementById('editMainImage');
-  if (mainImageInput.files && mainImageInput.files.length > 0) {
-    formData.append('main_image', mainImageInput.files[0]);
-  }
-
-  // Add gallery images if selected
-  const galleryInput = document.getElementById('editGallery');
-  if (galleryInput.files && galleryInput.files.length > 0) {
-    Array.from(galleryInput.files).forEach(file => {
-      formData.append('gallery', file);
-    });
-  }
-
-  try {
-    const response = await fetch(`/api/products/${productId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: formData
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      showModal('Success', 'Product updated successfully!', 'success');
-      closeEditModal();
-      
-      // Reload products if loadProducts function exists
-      if (typeof loadProducts === 'function') {
-        loadProducts();
-      }
-      
-      // Reload dashboard stats
-      loadDashboardStats();
-    } else {
-      showModal('Error', data.message || 'Failed to update product', 'error');
-    }
-  } catch (error) {
-    console.error('Error updating product:', error);
-    showModal('Error', 'An error occurred while updating the product', 'error');
-  }
-});
-
-/* ---------- LOGOUT ---------- */
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("shop");
-  window.location.href = "/login/login.html";
-}
-
-/* ---------- DASHBOARD STATS ---------- */
-async function loadDashboardStats() {
-  try {
-    // Load products count
-    const productsRes = await fetch("/api/products/my", {
-      headers: { Authorization: "Bearer " + token }
-    });
-    const products = await productsRes.json();
-    document.getElementById("totalProducts").textContent = products.length;
-    
-    // Count active products
-    const activeCount = products.filter(p => p.status === 'active').length;
-    document.getElementById("activeProducts").textContent = activeCount;
-
-    // Load staff count
-    const staffRes = await fetch("/api/staff/my", {
-      headers: { Authorization: "Bearer " + token }
-    });
-    const staff = await staffRes.json();
-    document.getElementById("totalStaff").textContent = staff.length;
-  } catch (error) {
-    console.error("Failed to load dashboard stats:", error);
-  }
 }
 
 /* ---------- INITIALIZE ---------- */
