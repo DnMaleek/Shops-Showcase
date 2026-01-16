@@ -7,7 +7,9 @@ const userAuthRoutes = require("./routes/userAuth");
 const shopAuthRoutes = require("./routes/shopAuth");
 const staffRoutes = require("./routes/staff");
 const productRoutes = require("./routes/products");
-const logs = require("./middleware/logs.middleware");
+const {logs} = require("./middleware/logs.middleware");
+const shopSettingsRoutes = require("./routes/shopSettings");
+const logsRoutes = require("./routes/logs");
 const app = express();
 
 app.use(cors());
@@ -23,6 +25,8 @@ app.use("/api/users", userAuthRoutes);
 app.use("/api/shops", shopAuthRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/shops/settings", shopSettingsRoutes);
+app.use("/api/logs", logsRoutes);
 const multer = require("multer");
 
 app.use((err, req, res, next) => {
