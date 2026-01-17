@@ -8,7 +8,7 @@ const router = express.Router();
 /* =========================
    GET SHOP SETTINGS
 ========================= */
-router.get("/", auth, shopAccess, async (req, res) => {
+router.get("/shop", auth, shopAccess, async (req, res) => {
   try {
     const [rows] = await db.query(
       "SELECT shop_name, description, email, phone, logo FROM shops WHERE id = ?",

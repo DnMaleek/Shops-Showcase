@@ -88,7 +88,10 @@ router.post(
 router.get("/", async (req, res) => {
   try {
     const [products] = await db.query(
-      `SELECT products.*, shops.shop_name
+      `SELECT 
+         products.*,
+         shops.shop_name,
+         shops.logo AS shop_logo
        FROM products
        JOIN shops ON products.shop_id = shops.id
        ORDER BY products.created_at DESC`

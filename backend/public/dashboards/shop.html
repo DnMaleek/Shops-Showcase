@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shop Details</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body class="bg-gray-100">
+
+<!-- AUTH CHECK -->
+<script>
+if (!localStorage.getItem("token")) {
+  window.location.href = "login.html";
+}
+</script>
+
+<!-- NAVBAR -->
+<nav class="bg-white shadow sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <a href="index.html" class="text-2xl font-bold text-blue-600">ShopZone</a>
+    <button onclick="history.back()" class="text-blue-600 font-semibold">
+      ← Back
+    </button>
+  </div>
+</nav>
+
+<!-- SHOP HEADER -->
+<section class="bg-white shadow">
+  <div class="max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row gap-6 items-center">
+
+    <img id="shopLogo"
+         class="w-28 h-28 rounded-full object-cover border"
+         src="/images/shop.png">
+
+    <div class="space-y-2 text-center md:text-left">
+      <h1 id="shopName" class="text-2xl font-bold"></h1>
+      <p id="shopDesc" class="text-gray-600"></p>
+
+      <div class="text-sm text-gray-500 space-y-1">
+        <p id="shopEmail"></p>
+        <p id="shopPhone"></p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+  <h2 class="text-xl font-bold mb-6">Products from this shop</h2>
+
+  <div id="products"
+       class="grid grid-cols-2 md:grid-cols-4 gap-6">
+  </div>
+
+</main>
+
+<footer class="bg-white py-6 text-center text-gray-500 text-sm">
+  © 2026 ShopZone
+</footer>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const shopId = params.get("id");
+
+async function loadShop() {
+  const res = await fetch(`/api/shops/${shopId}`);
+  const shop = await res.json();
+
+  console.log(shop.logo)
+
+  shopName.textContent = shop.shop_name;
+  shopDesc.textContent = shop.description || "No description provided";
+  shopEmail.textContent = `📧 ${shop.email}`;
+  shopPhone.textContent = `📞 ${shop.phone || 'N/A'}`;
+  shopLogo.src = `${shop.logo || 'shop.png'}`;
+}
+
+async function loadProducts() {
+  const res = await fetch(`/api/shops/${shopId}/products`);
+  const data = await res.json();
+  console.log(data)
+
+  products.innerHTML = data.products.map(p => `
+    <div class="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+
+      <img src="/uploads/products/${p.main_image || 'placeholder.png'}"
+           class="w-full h-40 object-cover">
+
+      <div class="p-4 space-y-1">
+        <h3 class="text-sm font-semibold line-clamp-2">${p.name}</h3>
+        <p class="text-blue-600 font-bold">$${p.price}</p>
+        <button class="w-full bg-blue-600 text-white py-2 mt-2 rounded">
+          Add to Cart
+        </button>
+      </div>
+    </div>
+  `).join("");
+}
+
+loadShop();
+loadProducts();
+</script>
+
+</body>
+</html>

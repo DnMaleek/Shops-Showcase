@@ -40,7 +40,7 @@ document.getElementById("settingsForm").addEventListener("submit", async e => {
 
 async function loadSettings() {
   const token = localStorage.getItem('token');
-  const res = await fetch('/api/shops/settings',{ 
+  const res = await fetch('/api/shops/settings/shop',{ 
     headers: { Authorization: `Bearer ${token}`}
   });
   const data = await res.json();

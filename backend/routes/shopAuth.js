@@ -81,4 +81,88 @@ router.post("/login", async (req, res) => {
   }
 });
 
+/* =========================
+   GET ALL SHOPS (PUBLIC)
+========================= */
+router.get("/", async (req, res) => {
+  try {
+    const [shops] = await db.query(
+      `SELECT 
+         id,
+         shop_name,
+         description,
+         email,
+         phone,
+         logo,
+         created_at
+       FROM shops
+       ORDER BY shop_name ASC`
+    );
+
+    res.json(shops);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
+   GET SINGLE SHOP
+========================= */
+router.get("/:id", async (req, res) => {
+  const shopId = req.params.id;
+
+  try {
+    const [[shop]] = await db.query(
+      `SELECT 
+         id,
+         shop_name,
+         description,
+         email,
+         phone,
+         logo,
+         created_at
+       FROM shops
+       WHERE id = ?`,
+      [shopId]
+    );
+
+    if (!shop) {
+      return res.status(404).json({ message: "Shop not found" });
+    }
+
+    res.json(shop);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
+   GET SHOP WITH PRODUCTS
+========================= */
+router.get("/:id/products", async (req, res) => {
+  const shopId = req.params.id;
+
+  try {
+    const [[shop]] = await db.query(
+      "SELECT id, shop_name, description, logo FROM shops WHERE id = ?",
+      [shopId]
+    );
+
+    if (!shop) {
+      return res.status(404).json({ message: "Shop not found" });
+    }
+
+    const [products] = await db.query(
+      "SELECT * FROM products WHERE shop_id = ? ORDER BY created_at DESC",
+      [shopId]
+    );
+
+    res.json({ shop, products });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
 module.exports = router;

@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const db = require("../config/db");
+const { auth } = require("../middleware/auth")
 
 const router = express.Router();
 
@@ -76,6 +77,60 @@ router.post("/login", async (req, res) => {
         type: "user"
       }
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
+   GET USER PROFILE
+========================= */
+router.get("/profile", auth, async (req, res) => {
+  try {
+    const [users] = await db.query("SELECT id, name, email, phone, address, payment_details FROM users WHERE id = ?", [req.userId]);
+    if (users.length === 0) return res.status(404).json({ message: "User not found" });
+
+    res.json(users[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
+   UPDATE USER PROFILE
+========================= */
+router.put("/profile", auth, async (req, res) => {
+  const { name, email, phone, address, payment_details, password } = req.body;
+
+  try {
+    // Check if email is being updated and already exists
+    if (email) {
+      const [existing] = await db.query("SELECT id FROM users WHERE email = ? AND id != ?", [email, req.userId]);
+      if (existing.length > 0) return res.status(400).json({ message: "Email already in use" });
+    }
+
+    let fields = [];
+    let values = [];
+
+    if (name) { fields.push("name = ?"); values.push(name); }
+    if (email) { fields.push("email = ?"); values.push(email); }
+    if (phone) { fields.push("phone = ?"); values.push(phone); }
+    if (address) { fields.push("address = ?"); values.push(address); }
+    if (payment_details) { fields.push("payment_details = ?"); values.push(JSON.stringify(payment_details)); }
+
+    // Update password if provided
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      fields.push("password = ?");
+      values.push(hashedPassword);
+    }
+
+    if (fields.length === 0) return res.status(400).json({ message: "No fields to update" });
+
+    values.push(req.userId);
+    await db.query(`UPDATE users SET ${fields.join(", ")} WHERE id = ?`, values);
+
+    res.json({ message: "Profile updated successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

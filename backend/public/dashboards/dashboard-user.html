@@ -2,79 +2,296 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>User Dashboard</title>
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <title>ShopZone</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
-  <link rel="manifest" href="/images/site.webmanifest">
-
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    #cartPanel { transition: transform 0.3s ease; transform: translateX(100%); }
+    #cartPanel.open { transform: translateX(0); }
+
+    /* Floating cart button */
+    #cartButton {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 60;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 9999px;
+      background-color: #2563EB;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    @media(min-width:768px){ #cartButton { display: flex; } }
+  </style>
 </head>
 
 <body class="bg-gray-100">
 
-<!-- Auth check -->
+<!-- AUTH CHECK -->
 <script>
 if (!localStorage.getItem("token")) {
   window.location.href = "login.html";
 }
 </script>
 
-<div class="flex min-h-screen">
+<!-- NAVBAR -->
+<nav class="bg-white shadow sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-blue-600">ShopZone</h1>
 
-  <!-- Sidebar -->
-  <aside class="w-64 bg-blue-700 text-white p-6">
-    <h2 class="text-2xl font-bold mb-8">Customer</h2>
-
-    <ul class="space-y-4">
-      <li class="hover:bg-blue-600 p-2 rounded cursor-pointer">Products</li>
-      <li class="hover:bg-blue-600 p-2 rounded cursor-pointer">My Orders</li>
-      <li onclick="logout()"
-          class="hover:bg-red-500 p-2 rounded cursor-pointer">
-        Logout
-      </li>
-    </ul>
-  </aside>
-
-  <!-- Main -->
-  <main class="flex-1 p-6">
-    <h1 class="text-2xl font-bold mb-6">Available Products</h1>
-
-    <div id="products"
-         class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="flex gap-6">
+      <button onclick="showTab('home')" class="tab-btn font-semibold">Home</button>
+      <button onclick="showTab('shops')" class="tab-btn">Shops</button>
+      <button onclick="showTab('products')" class="tab-btn">Products</button>
+      <button onclick="goToProfile()" class="tab-btn">My Profile</button>
     </div>
-  </main>
 
+    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg">Logout</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="max-w-7xl mx-auto px-6 py-8 space-y-10">
+
+  <!-- HOME TAB -->
+  <section id="home" class="tab-section">
+    <div class="mb-4">
+      <input id="homeSearchInput" type="text" placeholder="Search products in Home..." class="border p-2 rounded w-full md:w-1/2">
+    </div>
+
+    <h2 class="text-xl font-bold mb-4">Featured Products</h2>
+    <div id="featuredProducts" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+
+    <h2 class="text-xl font-bold mt-10 mb-4">Popular Shops</h2>
+    <div id="popularShops" class="grid grid-cols-2 md:grid-cols-5 gap-6"></div>
+
+    <h2 class="text-xl font-bold mt-10 mb-4">Recently Added</h2>
+    <div id="recentProducts" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+  </section>
+
+  <!-- SHOPS TAB -->
+  <section id="shops" class="tab-section hidden">
+    <div class="mb-4">
+      <input id="shopsSearchInput" type="text" placeholder="Search shops..." class="border p-2 rounded w-full md:w-1/2">
+    </div>
+
+    <h2 class="text-xl font-bold mb-6">Browse Shops</h2>
+    <div id="shopsList" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+  </section>
+
+  <!-- PRODUCTS TAB -->
+  <section id="products" class="tab-section hidden">
+    <div class="mb-4">
+      <input id="productsSearchInput" type="text" placeholder="Search products..." class="border p-2 rounded w-full md:w-1/2">
+    </div>
+
+    <div class="bg-white p-4 rounded-lg shadow mb-6 flex gap-4 flex-wrap">
+      <select id="filterCategory" class="border p-2 rounded"><option value="">All Categories</option></select>
+      <select id="filterShop" class="border p-2 rounded"><option value="">All Shops</option></select>
+      <select id="filterPrice" class="border p-2 rounded">
+        <option value="">Price</option>
+        <option value="low">Low to High</option>
+        <option value="high">High to Low</option>
+      </select>
+    </div>
+
+    <div id="productsList" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+  </section>
+
+</main>
+
+<!-- CART PANEL -->
+<div id="cartPanel" class="fixed top-0 right-0 h-full w-80 bg-white shadow-lg flex flex-col z-50">
+  <div class="flex justify-between items-center p-4 border-b">
+    <h2 class="text-lg font-bold">Your Cart</h2>
+    <button onclick="closeCart()" class="text-red-500 font-bold">&times;</button>
+  </div>
+  <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+  <div class="p-4 border-t">
+    <p class="font-semibold mb-2">Total: $<span id="cartTotal">0</span></p>
+    <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Checkout</button>
+  </div>
 </div>
 
+<!-- FLOATING CART BUTTON -->
+<div id="cartButton" onclick="openCart()">🛒</div>
+
+<!-- FOOTER -->
+<footer class="bg-white py-6 text-center text-gray-500 text-sm mt-10">© 2026 ShopZone</footer>
+
 <script>
-async function loadProducts() {
-  const res = await fetch("/api/products");
-  const products = await res.json();
-
-  const container = document.getElementById("products");
-  container.innerHTML = "";
-
-  products.forEach(p => {
-    container.innerHTML += `
-      <div class="bg-white p-4 rounded-lg shadow">
-        <h3 class="font-bold text-lg">${p.name}</h3>
-        <p class="text-gray-600">${p.description}</p>
-        <p class="font-semibold mt-2">$${p.price}</p>
-        <p class="font-semibold mt-2">${p.shop_name}</p>
-      </div>
-    `;
-  });
-}
-
-function logout() {
+/* ------------------------- AUTH & NAV ------------------------- */
+function logout(){
   localStorage.removeItem("token");
   window.location.href = "/login/login.html";
 }
+function showTab(tab){
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.add('hidden'));
+  document.getElementById(tab).classList.remove('hidden');
+}
+function goToProfile(){
+  window.location.href = "user-profile.html"; // advanced profile page
+}
 
-loadProducts();
+/* ------------------------- GLOBAL ------------------------- */
+let allProducts = [];
+let allShops = [];
+let cart = [];
+const cartPanel = document.getElementById("cartPanel");
+
+/* ------------------------- CART ------------------------- */
+function openCart(){ cartPanel.classList.add("open"); }
+function closeCart(){ cartPanel.classList.remove("open"); }
+
+function updateCart(){
+  const container = document.getElementById("cartItems");
+  container.innerHTML = "";
+  let total = 0;
+  cart.forEach((item,index)=>{
+    const price = item.discount && item.discount<item.price ? item.discount : item.price;
+    const itemTotal = price*item.qty;
+    total+=itemTotal;
+    container.innerHTML += `
+      <div class="flex gap-2 items-center">
+        <img src="${item.main_image || 'https://placehold.co/50x50?text=Product'}" class="w-12 h-12 object-cover rounded">
+        <div class="flex-1">
+          <p class="text-sm font-semibold">${item.name}</p>
+          <p class="text-xs text-gray-500">$${price} x ${item.qty}</p>
+        </div>
+        <button onclick="removeFromCart(${index})" class="text-red-500 font-bold">&times;</button>
+      </div>`;
+  });
+  document.getElementById("cartTotal").textContent = total.toFixed(2);
+}
+
+function addToCart(product){
+  const existing = cart.find(p=>p.id===product.id);
+  if(existing){ existing.qty++; } else{ cart.push({...product,qty:1}); }
+  updateCart();
+  openCart();
+}
+function removeFromCart(index){ cart.splice(index,1); updateCart(); }
+
+/* ------------------------- PRODUCT CARD ------------------------- */
+function productCard(p){
+  let priceHtml = `$${p.price}`;
+  if(p.discount && p.discount<p.price){
+    priceHtml=`<span class="line-through text-gray-400 mr-2">$${p.price}</span><span class="text-blue-600 font-bold">$${p.discount}</span>`;
+  }
+  const stockStatus = p.stock>0? `<span class="text-green-600 font-semibold">In Stock (${p.stock})</span>` : `<span class="text-red-600 font-semibold">Out of Stock</span>`;
+  return `
+    <div data-id="${p.id}" class="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden flex flex-col">
+      <img src="${p.main_image || 'https://placehold.co/300x300?text=Product'}" class="w-full h-40 object-cover">
+      <div class="p-4 flex-1 flex flex-col justify-between space-y-2">
+        <div>
+          <h3 class="text-sm font-semibold line-clamp-2">${p.name}</h3>
+          <p class="text-xs text-gray-500">${p.category || 'Uncategorized'}</p>
+          <p class="text-xs text-gray-500 mt-1">${p.shop_name}</p>
+        </div>
+        <div>
+          <p class="mt-1">${priceHtml}</p>
+          <p class="mt-1">${stockStatus}</p>
+          <button class="w-full bg-blue-600 text-white py-2 mt-2 rounded hover:bg-blue-700 transition add-to-cart-btn">Add to Cart</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function attachCartButtons(){
+  document.querySelectorAll(".add-to-cart-btn").forEach(btn=>{
+    btn.onclick=()=>{
+      const productId = btn.closest('[data-id]').getAttribute('data-id');
+      const product = allProducts.find(p=>p.id==productId);
+      if(product) addToCart(product);
+    };
+  });
+}
+
+/* ------------------------- LOAD DATA ------------------------- */
+async function loadData(){
+  const res = await fetch("/api/products");
+  allProducts = await res.json();
+  featuredProducts.innerHTML = allProducts.slice(0,4).map(productCard).join("");
+  recentProducts.innerHTML = allProducts.slice(-4).map(productCard).join("");
+  productsList.innerHTML = allProducts.map(productCard).join("");
+  attachCartButtons();
+
+  // Populate filters
+  const categories = [...new Set(allProducts.map(p=>p.category).filter(Boolean))];
+  filterCategory.innerHTML = `<option value="">All Categories</option>`+categories.map(c=>`<option value="${c}">${c}</option>`).join("");
+  const shops = [...new Set(allProducts.map(p=>p.shop_name))];
+  filterShop.innerHTML = `<option value="">All Shops</option>`+shops.map(s=>`<option value="${s}">${s}</option>`).join("");
+}
+
+/* ------------------------- LOAD SHOPS ------------------------- */
+async function loadShops(){
+  const res = await fetch("/api/shops");
+  allShops = await res.json();
+  shopsList.innerHTML = allShops.map(s=>`
+    <div class="bg-white p-4 rounded-lg shadow text-center">
+      <img src="${s.logo || 'https://placehold.co/200x200?text=Shop'}" class="w-20 h-20 mx-auto rounded-full object-cover mb-2">
+      <h3 class="font-semibold">${s.shop_name}</h3>
+      <button onclick="window.location.href='shop.html?id=${s.id}'" class="text-blue-600 text-sm mt-2">View Details</button>
+    </div>`).join("");
+
+  popularShops.innerHTML = allShops.slice(0,5).map(s=>`
+    <div class="bg-white p-4 rounded-lg shadow text-center">
+      <img src="${s.logo || 'https://placehold.co/200x200?text=Shop'}" class="w-16 h-16 mx-auto rounded-full mb-2">
+      <p class="text-sm font-semibold">${s.shop_name}</p>
+    </div>`).join("");
+}
+
+/* ------------------------- SEARCH & FILTER ------------------------- */
+productsSearchInput.addEventListener("input", applyProductFilters);
+filterCategory.addEventListener("change", applyProductFilters);
+filterShop.addEventListener("change", applyProductFilters);
+filterPrice.addEventListener("change", applyProductFilters);
+
+function applyProductFilters(){
+  let filtered = [...allProducts];
+  const search = productsSearchInput.value.toLowerCase();
+  if(search) filtered = filtered.filter(p=>p.name.toLowerCase().includes(search));
+  if(filterCategory.value) filtered = filtered.filter(p=>p.category===filterCategory.value);
+  if(filterShop.value) filtered = filtered.filter(p=>p.shop_name===filterShop.value);
+  if(filterPrice.value==='low') filtered.sort((a,b)=> (a.discount||a.price)-(b.discount||b.price));
+  if(filterPrice.value==='high') filtered.sort((a,b)=> (b.discount||b.price)-(a.discount||a.price));
+  productsList.innerHTML = filtered.map(productCard).join("");
+  attachCartButtons();
+}
+
+/* ------------------------- HOME & SHOPS SEARCH ------------------------- */
+homeSearchInput.addEventListener("input", ()=>{
+  const search = homeSearchInput.value.toLowerCase();
+  featuredProducts.innerHTML = allProducts.filter(p=>p.name.toLowerCase().includes(search)).slice(0,4).map(productCard).join("");
+  recentProducts.innerHTML = allProducts.filter(p=>p.name.toLowerCase().includes(search)).slice(-4).map(productCard).join("");
+  attachCartButtons();
+});
+
+shopsSearchInput.addEventListener("input", ()=>{
+  const search = shopsSearchInput.value.toLowerCase();
+  const filtered = allShops.filter(s=>s.shop_name.toLowerCase().includes(search));
+  shopsList.innerHTML = filtered.map(s=>`
+    <div class="bg-white p-4 rounded-lg shadow text-center">
+      <img src="${s.logo || 'https://placehold.co/200x200?text=Shop'}" class="w-20 h-20 mx-auto rounded-full object-cover mb-2">
+      <h3 class="font-semibold">${s.shop_name}</h3>
+      <button onclick="window.location.href='shop.html?id=${s.id}'" class="text-blue-600 text-sm mt-2">View Details</button>
+    </div>`).join("");
+  popularShops.innerHTML = filtered.slice(0,5).map(s=>`
+    <div class="bg-white p-4 rounded-lg shadow text-center">
+      <img src="${s.logo || 'https://placehold.co/200x200?text=Shop'}" class="w-16 h-16 mx-auto rounded-full mb-2">
+      <p class="text-sm font-semibold">${s.shop_name}</p>
+    </div>`).join("");
+});
+
+/* ------------------------- INIT ------------------------- */
+loadData();
+loadShops();
+showTab('home');
 </script>
-
 </body>
 </html>

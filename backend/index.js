@@ -14,7 +14,6 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(logs);
 
 // Serve static folders
 app.use(express.static(path.join(__dirname, "public")));
