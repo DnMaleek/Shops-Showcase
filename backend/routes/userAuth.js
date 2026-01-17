@@ -87,7 +87,7 @@ router.post("/login", async (req, res) => {
 ========================= */
 router.get("/profile", auth, async (req, res) => {
   try {
-    const [users] = await db.query("SELECT id, name, email, phone, address, payment_details FROM users WHERE id = ?", [req.userId]);
+    const [users] = await db.query("SELECT * FROM users WHERE id = ?", [req.user.id]);
     if (users.length === 0) return res.status(404).json({ message: "User not found" });
 
     res.json(users[0]);
@@ -99,7 +99,7 @@ router.get("/profile", auth, async (req, res) => {
 /* =========================
    UPDATE USER PROFILE
 ========================= */
-router.put("/profile", auth, async (req, res) => {
+router.put("/profile/update", auth, async (req, res) => {
   const { name, email, phone, address, payment_details, password } = req.body;
 
   try {

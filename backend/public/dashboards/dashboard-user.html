@@ -158,7 +158,7 @@ function updateCart(){
     total+=itemTotal;
     container.innerHTML += `
       <div class="flex gap-2 items-center">
-        <img src="${item.main_image || 'https://placehold.co/50x50?text=Product'}" class="w-12 h-12 object-cover rounded">
+        <img src="/uploads/products/${item.main_image || 'https://placehold.co/50x50?text=Product'}" class="w-12 h-12 object-cover rounded">
         <div class="flex-1">
           <p class="text-sm font-semibold">${item.name}</p>
           <p class="text-xs text-gray-500">$${price} x ${item.qty}</p>
@@ -186,7 +186,7 @@ function productCard(p){
   const stockStatus = p.stock>0? `<span class="text-green-600 font-semibold">In Stock (${p.stock})</span>` : `<span class="text-red-600 font-semibold">Out of Stock</span>`;
   return `
     <div data-id="${p.id}" class="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden flex flex-col">
-      <img src="${p.main_image || 'https://placehold.co/300x300?text=Product'}" class="w-full h-40 object-cover">
+      <img src="/uploads/products/${p.main_image || 'https://placehold.co/300x300?text=Product'}" class="w-full h-40 object-cover">
       <div class="p-4 flex-1 flex flex-col justify-between space-y-2">
         <div>
           <h3 class="text-sm font-semibold line-clamp-2">${p.name}</h3>

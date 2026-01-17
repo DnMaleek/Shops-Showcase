@@ -23,72 +23,77 @@ if (!localStorage.getItem("token")) {
   </div>
 </nav>
 
-<main class="max-w-4xl mx-auto px-6 py-8">
+<main class="max-w-6xl mx-auto px-6 py-8">
 
-  <h2 class="text-2xl font-bold mb-6">My Profile</h2>
+  <h2 class="text-3xl font-bold mb-8">My Profile</h2>
 
-  <div class="bg-white p-6 rounded-lg shadow space-y-6">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <!-- PROFILE CARD -->
+    <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center space-y-4">
+      <img id="profileAvatar" src="https://placehold.co/150x150?text=User" class="w-32 h-32 rounded-full object-cover border-4 border-blue-600">
+      <h3 id="displayName" class="text-xl font-semibold">John Doe</h3>
+      <p id="displayEmail" class="text-gray-500">john@email.com</p>
+      <p id="displayPhone" class="text-gray-500">+255 700 000 000</p>
+      <button id="editProfileBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition w-full">Edit Profile</button>
+    </div>
 
     <!-- PERSONAL DETAILS -->
-    <div>
-      <h3 class="text-lg font-semibold mb-2">Personal Details</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-lg shadow p-6 col-span-2 space-y-6">
+      <h3 class="text-xl font-semibold border-b pb-2 mb-4">Personal Details</h3>
+
+      <div id="profileView" class="space-y-4">
         <div>
-          <label class="text-sm text-gray-500">Full Name</label>
-          <input id="name" type="text" class="border p-2 rounded w-full">
+          <p class="text-gray-500">Full Name</p>
+          <p id="viewName" class="font-semibold">John Doe</p>
         </div>
         <div>
-          <label class="text-sm text-gray-500">Email</label>
-          <input id="email" type="email" class="border p-2 rounded w-full">
+          <p class="text-gray-500">Email</p>
+          <p id="viewEmail" class="font-semibold">john@email.com</p>
         </div>
         <div>
-          <label class="text-sm text-gray-500">Phone</label>
-          <input id="phone" type="text" class="border p-2 rounded w-full">
+          <p class="text-gray-500">Phone</p>
+          <p id="viewPhone" class="font-semibold">+255 700 000 000</p>
         </div>
         <div>
-          <label class="text-sm text-gray-500">Address</label>
-          <input id="address" type="text" class="border p-2 rounded w-full">
+          <p class="text-gray-500">Address</p>
+          <p id="viewAddress" class="font-semibold">N/A</p>
         </div>
         <div>
-          <label class="text-sm text-gray-500">Password</label>
-          <input id="password" type="password" placeholder="Leave blank to keep current" class="border p-2 rounded w-full">
+          <p class="text-gray-500">Password</p>
+          <p class="font-semibold">********</p>
         </div>
       </div>
-    </div>
 
-    <!-- PAYMENT DETAILS -->
-    <div>
-      <h3 class="text-lg font-semibold mb-2">Payment Details</h3>
-      <div class="space-y-4">
-        <div>
-          <label class="text-sm text-gray-500">Card Number</label>
-          <input id="cardNumber" type="text" class="border p-2 rounded w-full" placeholder="XXXX-XXXX-XXXX-XXXX">
+      <!-- EDIT FORM -->
+      <div id="profileEdit" class="space-y-4 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input id="editName" type="text" placeholder="Full Name" class="border p-2 rounded w-full">
+          <input id="editEmail" type="email" placeholder="Email" class="border p-2 rounded w-full">
+          <input id="editPhone" type="text" placeholder="Phone" class="border p-2 rounded w-full">
+          <input id="editAddress" type="text" placeholder="Address" class="border p-2 rounded w-full">
+          <input id="editPassword" type="password" placeholder="New Password (leave blank to keep current)" class="border p-2 rounded w-full">
         </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="text-sm text-gray-500">Expiry Date</label>
-            <input id="expiryDate" type="text" class="border p-2 rounded w-full" placeholder="MM/YY">
-          </div>
-          <div>
-            <label class="text-sm text-gray-500">CVV</label>
-            <input id="cvv" type="text" class="border p-2 rounded w-full" placeholder="123">
-          </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <input id="editCardNumber" type="text" placeholder="Card Number" class="border p-2 rounded w-full">
+          <input id="editExpiryDate" type="text" placeholder="Expiry MM/YY" class="border p-2 rounded w-full">
+          <input id="editCVV" type="text" placeholder="CVV" class="border p-2 rounded w-full">
         </div>
-        <div>
-          <label class="text-sm text-gray-500">Payment Method</label>
-          <select id="paymentMethod" class="border p-2 rounded w-full">
-            <option value="card">Card</option>
-            <option value="paypal">PayPal</option>
-          </select>
+
+        <select id="editPaymentMethod" class="border p-2 rounded w-full md:w-1/3">
+          <option value="card">Card</option>
+          <option value="paypal">PayPal</option>
+        </select>
+
+        <div class="flex gap-4">
+          <button id="saveProfileBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">Save</button>
+          <button id="cancelEditBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition">Cancel</button>
         </div>
+
+        <p id="statusMessage" class="text-sm mt-2"></p>
       </div>
     </div>
-
-    <button id="saveProfile" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition w-full">
-      Save Changes
-    </button>
-
-    <p id="statusMessage" class="text-sm mt-2"></p>
   </div>
 
 </main>
@@ -99,74 +104,106 @@ if (!localStorage.getItem("token")) {
 
 <script>
 const token = localStorage.getItem("token");
-if (!token) window.location.href = "/login/login.html";
+if(!token) window.location.href="/login/login.html";
 
-function logout() {
+function logout(){
   localStorage.removeItem("token");
-  window.location.href = "/login/login.html";
+  window.location.href="/login/login.html";
 }
 
-// Fetch current profile
-async function loadProfile() {
-  try {
-    const res = await fetch("/api/users/profile", {
+/* ------------------ ELEMENTS ------------------ */
+const editBtn = document.getElementById("editProfileBtn");
+const profileView = document.getElementById("profileView");
+const profileEdit = document.getElementById("profileEdit");
+const saveBtn = document.getElementById("saveProfileBtn");
+const cancelBtn = document.getElementById("cancelEditBtn");
+const statusMessage = document.getElementById("statusMessage");
+
+/* ------------------ LOAD PROFILE ------------------ */
+async function loadProfile(){
+  try{
+    const res = await fetch("/api/users/profile",{
       headers: { "Authorization": "Bearer " + token }
     });
     const data = await res.json();
-    
-    name.value = data.name || "";
-    email.value = data.email || "";
-    phone.value = data.phone || "";
-    address.value = data.address || "";
 
-    // Load payment details if exists
-    if (data.payment_details) {
-      const pd = typeof data.payment_details === "string" ? JSON.parse(data.payment_details) : data.payment_details;
-      cardNumber.value = pd.cardNumber || "";
-      expiryDate.value = pd.expiryDate || "";
-      cvv.value = pd.cvv || "";
-      paymentMethod.value = pd.paymentMethod || "card";
+    // Display
+    document.getElementById("displayName").textContent = data.name || "";
+    document.getElementById("displayEmail").textContent = data.email || "";
+    document.getElementById("displayPhone").textContent = data.phone || "";
+    document.getElementById("viewName").textContent = data.name || "";
+    document.getElementById("viewEmail").textContent = data.email || "";
+    document.getElementById("viewPhone").textContent = data.phone || "";
+    document.getElementById("viewAddress").textContent = data.address || "N/A";
+
+    // Fill edit fields
+    document.getElementById("editName").value = data.name || "";
+    document.getElementById("editEmail").value = data.email || "";
+    document.getElementById("editPhone").value = data.phone || "";
+    document.getElementById("editAddress").value = data.address || "";
+    if(data.payment_details){
+      const pd = typeof data.payment_details === "string"?JSON.parse(data.payment_details):data.payment_details;
+      document.getElementById("editCardNumber").value = pd.cardNumber || "";
+      document.getElementById("editExpiryDate").value = pd.expiryDate || "";
+      document.getElementById("editCVV").value = pd.cvv || "";
+      document.getElementById("editPaymentMethod").value = pd.paymentMethod || "card";
     }
-  } catch (err) {
-    console.error(err);
-  }
+  }catch(err){ console.error(err);}
 }
+loadProfile();
 
-// Update profile
-saveProfile.addEventListener("click", async () => {
+/* ------------------ EDIT TOGGLE ------------------ */
+editBtn.addEventListener("click", ()=>{
+  profileView.classList.add("hidden");
+  profileEdit.classList.remove("hidden");
+});
+cancelBtn.addEventListener("click", ()=>{
+  profileEdit.classList.add("hidden");
+  profileView.classList.remove("hidden");
+});
+
+/* ------------------ SAVE PROFILE ------------------ */
+saveBtn.addEventListener("click", async ()=>{
   const payload = {
-    name: name.value,
-    email: email.value,
-    phone: phone.value,
-    address: address.value,
-    password: password.value || undefined,
+    name: document.getElementById("editName").value,
+    email: document.getElementById("editEmail").value,
+    phone: document.getElementById("editPhone").value,
+    address: document.getElementById("editAddress").value,
+    password: document.getElementById("editPassword").value || undefined,
     payment_details: {
-      cardNumber: cardNumber.value,
-      expiryDate: expiryDate.value,
-      cvv: cvv.value,
-      paymentMethod: paymentMethod.value
+      cardNumber: document.getElementById("editCardNumber").value,
+      expiryDate: document.getElementById("editExpiryDate").value,
+      cvv: document.getElementById("editCVV").value,
+      paymentMethod: document.getElementById("editPaymentMethod").value
     }
   };
 
-  try {
-    const res = await fetch("/api/users/profile", {
+  try{
+    const res = await fetch("/api/users/profile/update",{
       method: "PUT",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      headers: {
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+token
+      },
       body: JSON.stringify(payload)
     });
-
     const data = await res.json();
     statusMessage.textContent = data.message;
+    statusMessage.classList.remove("text-red-600");
     statusMessage.classList.add("text-green-600");
-    password.value = ""; // Clear password field
-  } catch (err) {
+
+    // Update display
+    loadProfile();
+    profileEdit.classList.add("hidden");
+    profileView.classList.remove("hidden");
+    document.getElementById("editPassword").value="";
+  }catch(err){
     console.error(err);
-    statusMessage.textContent = "Error updating profile.";
+    statusMessage.textContent="Error updating profile";
+    statusMessage.classList.remove("text-green-600");
     statusMessage.classList.add("text-red-600");
   }
 });
-
-loadProfile();
 </script>
 
 </body>
