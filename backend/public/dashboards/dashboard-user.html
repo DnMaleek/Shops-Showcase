@@ -6,8 +6,19 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <style>
-    #cartPanel { transition: transform 0.3s ease; transform: translateX(100%); }
-    #cartPanel.open { transform: translateX(0); }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    #cartPanel { 
+      transition: transform 0.3s ease; 
+      transform: translateX(100%); 
+    }
+    #cartPanel.open { 
+      transform: translateX(0); 
+    }
 
     /* Floating cart button */
     #cartButton {
@@ -25,8 +36,149 @@
       color: white;
       font-size: 24px;
       cursor: pointer;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+      transition: all 0.3s ease;
     }
-    @media(min-width:768px){ #cartButton { display: flex; } }
+    #cartButton:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(37, 99, 235, 0.5);
+    }
+    @media(min-width:768px){ 
+      #cartButton { 
+        display: flex; 
+      } 
+    }
+    
+    /* Product items - list style */
+    .product-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 20px 0;
+      transition: all 0.3s ease;
+    }
+    
+    .product-item:hover {
+      background-color: #f8fafc;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    
+    .product-item img {
+      transition: transform 0.3s ease;
+    }
+    
+    .product-item:hover img {
+      transform: scale(1.05);
+    }
+    
+    .shop-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 20px 0;
+      transition: all 0.3s ease;
+    }
+    
+    .shop-item:hover {
+      background-color: #f8fafc;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    
+    /* Tab buttons */
+    .tab-btn {
+      position: relative;
+      padding: 8px 16px;
+      transition: all 0.3s ease;
+      color: #64748b;
+      border-radius: 10px;
+    }
+    
+    .tab-btn:hover {
+      color: #2563EB;
+      background: rgba(37, 99, 235, 0.08);
+    }
+    
+    .tab-btn.active {
+      color: #2563EB;
+      background: rgba(37, 99, 235, 0.12);
+      font-weight: 600;
+    }
+    
+    /* Inputs and selects */
+    input[type="text"], select {
+      transition: all 0.3s ease;
+      border-radius: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    input[type="text"]:focus, select:focus {
+      outline: none;
+      border-color: #2563EB;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+    }
+    
+    /* Buttons */
+    button {
+      transition: all 0.3s ease;
+      border-radius: 12px;
+    }
+    
+    .bg-blue-600:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+    }
+    
+    .bg-red-500:hover {
+      background-color: #dc2626;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+    }
+    
+    /* Navbar */
+    nav {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Filter container */
+    .filter-container {
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Cart items */
+    .cart-item {
+      animation: slideIn 0.3s ease;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    
+    .cart-item:hover {
+      background-color: #f8fafc;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    /* Cart panel */
+    #cartPanel {
+      border-radius: 0;
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Footer */
+    footer {
+      border-radius: 20px;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Container backgrounds */
   </style>
 </head>
 
@@ -44,14 +196,14 @@ if (!localStorage.getItem("token")) {
   <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
     <h1 class="text-2xl font-bold text-blue-600">ShopZone</h1>
 
-    <div class="flex gap-6">
-      <button onclick="showTab('home')" class="tab-btn font-semibold">Home</button>
-      <button onclick="showTab('shops')" class="tab-btn">Shops</button>
-      <button onclick="showTab('products')" class="tab-btn">Products</button>
+    <div class="flex gap-2">
+      <button onclick="showTab('home')" class="tab-btn font-semibold active" data-tab="home">Home</button>
+      <button onclick="showTab('shops')" class="tab-btn" data-tab="shops">Shops</button>
+      <button onclick="showTab('products')" class="tab-btn" data-tab="products">Products</button>
       <button onclick="goToProfile()" class="tab-btn">My Profile</button>
     </div>
 
-    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg">Logout</button>
+    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold">Logout</button>
   </div>
 </nav>
 
@@ -60,37 +212,37 @@ if (!localStorage.getItem("token")) {
 
   <!-- HOME TAB -->
   <section id="home" class="tab-section">
-    <div class="mb-4">
-      <input id="homeSearchInput" type="text" placeholder="Search products in Home..." class="border p-2 rounded w-full md:w-1/2">
+    <div class="mb-6">
+      <input id="homeSearchInput" type="text" placeholder="Search products in Home..." class="border p-3 rounded w-full md:w-1/2">
     </div>
 
     <h2 class="text-xl font-bold mb-4">Featured Products</h2>
-    <div id="featuredProducts" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+    <div id="featuredProducts" class="space-y-2 mb-10"></div>
 
-    <h2 class="text-xl font-bold mt-10 mb-4">Popular Shops</h2>
-    <div id="popularShops" class="grid grid-cols-2 md:grid-cols-5 gap-6"></div>
+    <h2 class="text-xl font-bold mb-4">Popular Shops</h2>
+    <div id="popularShops" class="space-y-2 mb-10"></div>
 
-    <h2 class="text-xl font-bold mt-10 mb-4">Recently Added</h2>
-    <div id="recentProducts" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+    <h2 class="text-xl font-bold mb-4">Recently Added</h2>
+    <div id="recentProducts" class="space-y-2"></div>
   </section>
 
   <!-- SHOPS TAB -->
   <section id="shops" class="tab-section hidden">
-    <div class="mb-4">
-      <input id="shopsSearchInput" type="text" placeholder="Search shops..." class="border p-2 rounded w-full md:w-1/2">
+    <div class="mb-6">
+      <input id="shopsSearchInput" type="text" placeholder="Search shops..." class="border p-3 rounded w-full md:w-1/2">
     </div>
 
     <h2 class="text-xl font-bold mb-6">Browse Shops</h2>
-    <div id="shopsList" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+    <div id="shopsList" class="space-y-2"></div>
   </section>
 
   <!-- PRODUCTS TAB -->
   <section id="products" class="tab-section hidden">
-    <div class="mb-4">
-      <input id="productsSearchInput" type="text" placeholder="Search products..." class="border p-2 rounded w-full md:w-1/2">
+    <div class="mb-6">
+      <input id="productsSearchInput" type="text" placeholder="Search products..." class="border p-3 rounded w-full md:w-1/2">
     </div>
 
-    <div class="bg-white p-4 rounded-lg shadow mb-6 flex gap-4 flex-wrap">
+    <div class="filter-container bg-white p-4 rounded-lg shadow mb-6 flex gap-4 flex-wrap">
       <select id="filterCategory" class="border p-2 rounded"><option value="">All Categories</option></select>
       <select id="filterShop" class="border p-2 rounded"><option value="">All Shops</option></select>
       <select id="filterPrice" class="border p-2 rounded">
@@ -100,7 +252,7 @@ if (!localStorage.getItem("token")) {
       </select>
     </div>
 
-    <div id="productsList" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+    <div id="productsList" class="space-y-2"></div>
   </section>
 
 </main>
@@ -133,6 +285,14 @@ function logout(){
 function showTab(tab){
   document.querySelectorAll('.tab-section').forEach(s => s.classList.add('hidden'));
   document.getElementById(tab).classList.remove('hidden');
+  
+  // Update active tab
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if(btn.getAttribute('data-tab') === tab) {
+      btn.classList.add('active');
+    }
+  });
 }
 function goToProfile(){
   window.location.href = "user-profile.html"; // advanced profile page
@@ -141,7 +301,7 @@ function goToProfile(){
 /* ------------------------- GLOBAL ------------------------- */
 let allProducts = [];
 let allShops = [];
-let cart = [];
+let cart = JSON.parse(localStorage.getItem('shopzone_cart') || '[]');
 const cartPanel = document.getElementById("cartPanel");
 
 /* ------------------------- CART ------------------------- */
@@ -157,48 +317,54 @@ function updateCart(){
     const itemTotal = price*item.qty;
     total+=itemTotal;
     container.innerHTML += `
-      <div class="flex gap-2 items-center">
+      <div class="cart-item flex gap-2 items-center p-2">
         <img src="/uploads/products/${item.main_image || 'https://placehold.co/50x50?text=Product'}" class="w-12 h-12 object-cover rounded">
         <div class="flex-1">
           <p class="text-sm font-semibold">${item.name}</p>
-          <p class="text-xs text-gray-500">$${price} x ${item.qty}</p>
+          <p class="text-xs text-gray-500">${price} x ${item.qty}</p>
         </div>
         <button onclick="removeFromCart(${index})" class="text-red-500 font-bold">&times;</button>
       </div>`;
   });
-  document.getElementById("cartTotal").textContent = total.toFixed(2);
+  document.getElementById("cartTotal").textContent = total;
+  localStorage.setItem('shopzone_cart', JSON.stringify(cart));
 }
 
 function addToCart(product){
   const existing = cart.find(p=>p.id===product.id);
-  if(existing){ existing.qty++; } else{ cart.push({...product,qty:1}); }
+  if(existing){ 
+    existing.qty++; 
+  } else{ 
+    cart.push({...product,qty:1}); 
+  }
   updateCart();
   openCart();
 }
-function removeFromCart(index){ cart.splice(index,1); updateCart(); }
+
+function removeFromCart(index){ 
+  cart.splice(index,1); 
+  updateCart(); 
+}
 
 /* ------------------------- PRODUCT CARD ------------------------- */
 function productCard(p){
-  let priceHtml = `$${p.price}`;
+  let priceHtml = `${p.price}`;
   if(p.discount && p.discount<p.price){
-    priceHtml=`<span class="line-through text-gray-400 mr-2">$${p.price}</span><span class="text-blue-600 font-bold">$${p.discount}</span>`;
+    priceHtml=`<span class="line-through text-gray-400 mr-2">${p.price}</span><span class="text-blue-600 font-bold">${p.discount}</span>`;
   }
-  const stockStatus = p.stock>0? `<span class="text-green-600 font-semibold">In Stock (${p.stock})</span>` : `<span class="text-red-600 font-semibold">Out of Stock</span>`;
+  const stockStatus = p.stock>0? `<span class="text-green-600 font-semibold text-sm">In Stock (${p.stock})</span>` : `<span class="text-red-600 font-semibold text-sm">Out of Stock</span>`;
   return `
-    <div data-id="${p.id}" class="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden flex flex-col">
-      <img src="/uploads/products/${p.main_image || 'https://placehold.co/300x300?text=Product'}" class="w-full h-40 object-cover">
-      <div class="p-4 flex-1 flex flex-col justify-between space-y-2">
-        <div>
-          <h3 class="text-sm font-semibold line-clamp-2">${p.name}</h3>
-          <p class="text-xs text-gray-500">${p.category || 'Uncategorized'}</p>
-          <p class="text-xs text-gray-500 mt-1">${p.shop_name}</p>
-        </div>
-        <div>
-          <p class="mt-1">${priceHtml}</p>
-          <p class="mt-1">${stockStatus}</p>
-          <button class="w-full bg-blue-600 text-white py-2 mt-2 rounded hover:bg-blue-700 transition add-to-cart-btn">Add to Cart</button>
+    <div data-id="${p.id}" class="product-item flex gap-4 items-center" onclick="window.location.href='product-details.html?id=${p.id}'" style="cursor: pointer;">
+      <img src="/uploads/products/${p.main_image || 'https://placehold.co/100x100?text=Product'}" class="w-24 h-24 object-cover rounded-lg">
+      <div class="flex-1">
+        <h3 class="font-semibold text-base">${p.name}</h3>
+        <p class="text-sm text-gray-500">${p.category || 'Uncategorized'} • ${p.shop_name}</p>
+        <div class="mt-2 flex items-center gap-3">
+          <span class="text-lg font-bold">${priceHtml}</span>
+          ${stockStatus}
         </div>
       </div>
+      <button onclick="event.stopPropagation()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition add-to-cart-btn">Add to Cart</button>
     </div>`;
 }
 
@@ -233,16 +399,20 @@ async function loadShops(){
   const res = await fetch("/api/shops");
   allShops = await res.json();
   shopsList.innerHTML = allShops.map(s=>`
-    <div class="bg-white p-4 rounded-lg shadow text-center">
-      <img src="${s.logo || 'https://placehold.co/200x200?text=Shop'}" class="w-20 h-20 mx-auto rounded-full object-cover mb-2">
-      <h3 class="font-semibold">${s.shop_name}</h3>
-      <button onclick="window.location.href='shop.html?id=${s.id}'" class="text-blue-600 text-sm mt-2">View Details</button>
+    <div class="shop-item flex gap-4 items-center">
+      <img src="${s.logo || 'https://placehold.co/80x80?text=Shop'}" class="w-20 h-20 rounded-full object-cover">
+      <div class="flex-1">
+        <h3 class="font-bold text-base">${s.shop_name}</h3>
+      </div>
+      <button onclick="window.location.href='shop.html?id=${s.id}'" class="text-blue-600 font-semibold hover:underline">View Details →</button>
     </div>`).join("");
 
   popularShops.innerHTML = allShops.slice(0,5).map(s=>`
-    <div class="bg-white p-4 rounded-lg shadow text-center">
-      <img src="${s.logo || 'https://placehold.co/200x200?text=Shop'}" class="w-16 h-16 mx-auto rounded-full mb-2">
-      <p class="text-sm font-semibold">${s.shop_name}</p>
+    <div class="shop-item flex gap-4 items-center">
+      <img src="${s.logo || 'https://placehold.co/60x60?text=Shop'}" class="w-16 h-16 rounded-full object-cover">
+      <div class="flex-1">
+        <p class="font-semibold">${s.shop_name}</p>
+      </div>
     </div>`).join("");
 }
 
@@ -276,15 +446,19 @@ shopsSearchInput.addEventListener("input", ()=>{
   const search = shopsSearchInput.value.toLowerCase();
   const filtered = allShops.filter(s=>s.shop_name.toLowerCase().includes(search));
   shopsList.innerHTML = filtered.map(s=>`
-    <div class="bg-white p-4 rounded-lg shadow text-center">
-      <img src="${s.logo || 'https://placehold.co/200x200?text=Shop'}" class="w-20 h-20 mx-auto rounded-full object-cover mb-2">
-      <h3 class="font-semibold">${s.shop_name}</h3>
-      <button onclick="window.location.href='shop.html?id=${s.id}'" class="text-blue-600 text-sm mt-2">View Details</button>
+    <div class="shop-item flex gap-4 items-center">
+      <img src="${s.logo || 'https://placehold.co/80x80?text=Shop'}" class="w-20 h-20 rounded-full object-cover">
+      <div class="flex-1">
+        <h3 class="font-bold text-base">${s.shop_name}</h3>
+      </div>
+      <button onclick="window.location.href='shop.html?id=${s.id}'" class="text-blue-600 font-semibold hover:underline">View Details →</button>
     </div>`).join("");
   popularShops.innerHTML = filtered.slice(0,5).map(s=>`
-    <div class="bg-white p-4 rounded-lg shadow text-center">
-      <img src="${s.logo || 'https://placehold.co/200x200?text=Shop'}" class="w-16 h-16 mx-auto rounded-full mb-2">
-      <p class="text-sm font-semibold">${s.shop_name}</p>
+    <div class="shop-item flex gap-4 items-center">
+      <img src="${s.logo || 'https://placehold.co/60x60?text=Shop'}" class="w-16 h-16 rounded-full object-cover">
+      <div class="flex-1">
+        <p class="font-semibold">${s.shop_name}</p>
+      </div>
     </div>`).join("");
 });
 
@@ -292,6 +466,7 @@ shopsSearchInput.addEventListener("input", ()=>{
 loadData();
 loadShops();
 showTab('home');
+updateCart(); // Initialize cart on page load
 </script>
 </body>
 </html>

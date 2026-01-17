@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product Details - ShopZone</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    #cartPanel { 
+      transition: transform 0.3s ease; 
+      transform: translateX(100%); 
+    }
+    #cartPanel.open { 
+      transform: translateX(0); 
+    }
+
+    /* Floating cart button */
+    #cartButton {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 60;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 9999px;
+      background-color: #2563EB;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+      transition: all 0.3s ease;
+    }
+    #cartButton:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(37, 99, 235, 0.5);
+    }
+    
+    /* Product items - list style */
+    .product-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 20px 0;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .product-item:hover {
+      background-color: #f8fafc;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    
+    .product-item img {
+      transition: transform 0.3s ease;
+    }
+    
+    .product-item:hover img {
+      transform: scale(1.05);
+    }
+    
+    /* Buttons */
+    button {
+      transition: all 0.3s ease;
+      border-radius: 12px;
+    }
+    
+    .bg-blue-600:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+    }
+    
+    .bg-red-500:hover {
+      background-color: #dc2626;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+    }
+    
+    /* Navbar */
+    nav {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Cart items */
+    .cart-item {
+      animation: slideIn 0.3s ease;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    
+    .cart-item:hover {
+      background-color: #f8fafc;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    /* Image gallery */
+    .gallery-image {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    
+    .gallery-image:hover, .gallery-image.active {
+      border-color: #2563EB;
+    }
+    
+    .main-image {
+      border-radius: 20px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100">
+
+<!-- AUTH CHECK -->
+<script>
+if (!localStorage.getItem("token")) {
+  window.location.href = "login.html";
+}
+</script>
+
+<!-- NAVBAR -->
+<nav class="bg-white shadow sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-blue-600 cursor-pointer" onclick="window.location.href='index.html'">ShopZone</h1>
+
+    <div class="flex gap-4 items-center">
+      <button onclick="window.location.href='index.html'" class="text-gray-600 hover:text-blue-600 font-medium">← Back to Shop</button>
+      <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+  <!-- Product Details Section -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-12">
+    
+    <!-- Product Images -->
+    <div>
+      <div id="mainImage" class="main-image mb-4 bg-white p-4">
+        <img src="" alt="Product" class="w-full h-96 object-contain">
+      </div>
+      <div id="imageGallery" class="grid grid-cols-4 gap-2">
+        <!-- Thumbnail images will be populated here -->
+      </div>
+    </div>
+
+    <!-- Product Info -->
+    <div>
+      <div class="mb-2">
+        <span id="productCategory" class="text-sm text-gray-500"></span>
+      </div>
+      
+      <h1 id="productName" class="text-3xl font-bold text-gray-800 mb-4"></h1>
+      
+      <div class="mb-4">
+        <span id="productShop" class="text-blue-600 font-semibold text-lg cursor-pointer hover:underline"></span>
+      </div>
+
+      <div id="productPrice" class="mb-6">
+        <!-- Price will be populated here -->
+      </div>
+
+      <div id="productStock" class="mb-6">
+        <!-- Stock status will be populated here -->
+      </div>
+
+      <div class="mb-6">
+        <h3 class="font-semibold text-lg mb-2">Description</h3>
+        <p id="productDescription" class="text-gray-600 leading-relaxed"></p>
+      </div>
+
+      <div class="flex gap-4 mb-6">
+        <div class="flex items-center gap-3">
+          <button onclick="decreaseQty()" class="w-10 h-10 bg-gray-200 rounded-lg font-bold hover:bg-gray-300">-</button>
+          <span id="quantity" class="text-xl font-semibold w-12 text-center">1</span>
+          <button onclick="increaseQty()" class="w-10 h-10 bg-gray-200 rounded-lg font-bold hover:bg-gray-300">+</button>
+        </div>
+      </div>
+
+      <div class="flex gap-4">
+        <button onclick="addToCartFromDetails()" class="flex-1 bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition">
+          Add to Cart
+        </button>
+        <button onclick="buyNow()" class="flex-1 bg-green-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-green-700 transition">
+          Buy Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products Section -->
+  <div class="mt-16">
+    <h2 class="text-2xl font-bold mb-6">Related Products</h2>
+    <div id="relatedProducts" class="space-y-2">
+      <!-- Related products will be populated here -->
+    </div>
+  </div>
+
+</main>
+
+<!-- CART PANEL -->
+<div id="cartPanel" class="fixed top-0 right-0 h-full w-80 bg-white shadow-lg flex flex-col z-50">
+  <div class="flex justify-between items-center p-4 border-b">
+    <h2 class="text-lg font-bold">Your Cart</h2>
+    <button onclick="closeCart()" class="text-red-500 font-bold">&times;</button>
+  </div>
+  <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+  <div class="p-4 border-t">
+    <p class="font-semibold mb-2">Total: $<span id="cartTotal">0</span></p>
+    <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Checkout</button>
+  </div>
+</div>
+
+<!-- FLOATING CART BUTTON -->
+<div id="cartButton" onclick="openCart()">🛒</div>
+
+<!-- FOOTER -->
+<footer class="bg-white py-6 text-center text-gray-500 text-sm mt-10">© 2026 ShopZone</footer>
+
+<script>
+/* ------------------------- GLOBAL ------------------------- */
+let currentProduct = null;
+let allProducts = [];
+let cart = JSON.parse(localStorage.getItem('shopzone_cart') || '[]');
+let quantity = 1;
+const cartPanel = document.getElementById("cartPanel");
+
+/* ------------------------- AUTH & NAV ------------------------- */
+function logout(){
+  localStorage.removeItem("token");
+  window.location.href = "/login/login.html";
+}
+
+/* ------------------------- CART ------------------------- */
+function openCart(){ cartPanel.classList.add("open"); }
+function closeCart(){ cartPanel.classList.remove("open"); }
+
+function updateCart(){
+  const container = document.getElementById("cartItems");
+  container.innerHTML = "";
+  let total = 0;
+  cart.forEach((item,index)=>{
+    const price = item.discount && item.discount<item.price ? item.discount : item.price;
+    const itemTotal = price*item.qty;
+    total+=itemTotal;
+    container.innerHTML += `
+      <div class="cart-item flex gap-2 items-center p-2">
+        <img src="/uploads/products/${item.main_image || 'https://placehold.co/50x50?text=Product'}" class="w-12 h-12 object-cover rounded">
+        <div class="flex-1">
+          <p class="text-sm font-semibold">${item.name}</p>
+          <p class="text-xs text-gray-500">$${price} x ${item.qty}</p>
+        </div>
+        <button onclick="removeFromCart(${index})" class="text-red-500 font-bold">&times;</button>
+      </div>`;
+  });
+  document.getElementById("cartTotal").textContent = total;
+  localStorage.setItem('shopzone_cart', JSON.stringify(cart));
+}
+
+function addToCart(product, qty = 1){
+  const existing = cart.find(p=>p.id===product.id);
+  if(existing){ existing.qty += qty; } else{ cart.push({...product, qty: qty}); }
+  updateCart();
+}
+
+function removeFromCart(index){ 
+  cart.splice(index,1); 
+  updateCart(); 
+}
+
+/* ------------------------- QUANTITY ------------------------- */
+function increaseQty(){
+  if(currentProduct && currentProduct.stock > quantity){
+    quantity++;
+    document.getElementById('quantity').textContent = quantity;
+  }
+}
+
+function decreaseQty(){
+  if(quantity > 1){
+    quantity--;
+    document.getElementById('quantity').textContent = quantity;
+  }
+}
+
+/* ------------------------- ADD TO CART ------------------------- */
+function addToCartFromDetails(){
+  if(currentProduct){
+    addToCart(currentProduct, quantity);
+    openCart();
+  }
+}
+
+function buyNow(){
+  if(currentProduct){
+    addToCart(currentProduct, quantity);
+    // Redirect to checkout page
+    window.location.href = 'checkout.html';
+  }
+}
+
+/* ------------------------- PRODUCT CARD FOR RELATED ------------------------- */
+function productCard(p){
+  let priceHtml = `$${p.price}`;
+  if(p.discount && p.discount<p.price){
+    priceHtml=`<span class="line-through text-gray-400 mr-2">$${p.price}</span><span class="text-blue-600 font-bold">$${p.discount}</span>`;
+  }
+  const stockStatus = p.stock>0? `<span class="text-green-600 font-semibold text-sm">In Stock (${p.stock})</span>` : `<span class="text-red-600 font-semibold text-sm">Out of Stock</span>`;
+  return `
+    <div data-id="${p.id}" class="product-item flex gap-4 items-center" onclick="goToProduct(${p.id})">
+      <img src="/uploads/products/${p.main_image || 'https://placehold.co/100x100?text=Product'}" class="w-24 h-24 object-cover rounded-lg">
+      <div class="flex-1">
+        <h3 class="font-semibold text-base">${p.name}</h3>
+        <p class="text-sm text-gray-500">${p.category || 'Uncategorized'} • ${p.shop_name}</p>
+        <div class="mt-2 flex items-center gap-3">
+          <span class="text-lg font-bold">${priceHtml}</span>
+          ${stockStatus}
+        </div>
+      </div>
+      <button onclick="event.stopPropagation(); quickAddToCart(${p.id})" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">Add to Cart</button>
+    </div>`;
+}
+
+function goToProduct(productId){
+  window.location.href = `product-details.html?id=${productId}`;
+}
+
+function quickAddToCart(productId){
+  const product = allProducts.find(p => p.id == productId);
+  if(product){
+    addToCart(product, 1);
+    openCart();
+  }
+}
+
+/* ------------------------- LOAD PRODUCT DETAILS ------------------------- */
+async function loadProductDetails(){
+  // Get product ID from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const productId = urlParams.get('id');
+  
+  if(!productId){
+    window.location.href = 'index.html';
+    return;
+  }
+
+  try {
+    // Fetch product details with gallery images
+    const detailsRes = await fetch(`/api/products/${productId}/details`);
+    const productDetails = await detailsRes.json();
+    
+    if(!productDetails){
+      window.location.href = 'index.html';
+      return;
+    }
+
+    currentProduct = productDetails;
+
+    // Fetch all products for related products section
+    const allRes = await fetch("/api/products");
+    allProducts = await allRes.json();
+
+    // Populate product details
+    document.getElementById('productName').textContent = currentProduct.name;
+    document.getElementById('productCategory').textContent = currentProduct.category || 'Uncategorized';
+    
+    // Get shop name from allProducts since details endpoint might not include it
+    const fullProduct = allProducts.find(p => p.id == productId);
+    if(fullProduct){
+      document.getElementById('productShop').textContent = fullProduct.shop_name;
+      document.getElementById('productShop').onclick = () => window.location.href = `shop.html?id=${fullProduct.shop_id}`;
+      currentProduct.shop_name = fullProduct.shop_name;
+      currentProduct.shop_id = fullProduct.shop_id;
+    }
+    
+    // Description
+    document.getElementById('productDescription').textContent = currentProduct.description || 'No description available for this product.';
+    
+    // Price
+    let priceHtml = `<span class="text-4xl font-bold text-gray-800">${currentProduct.price}</span>`;
+    if(currentProduct.discount && currentProduct.discount < currentProduct.price){
+      const savings = ((1 - currentProduct.discount/currentProduct.price) * 100);
+      priceHtml = `
+        <div class="flex items-center gap-3">
+          <span class="text-2xl line-through text-gray-400">${currentProduct.price}</span>
+          <span class="text-4xl font-bold text-blue-600">${currentProduct.discount}</span>
+          <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">Save ${savings}%</span>
+        </div>`;
+    }
+    document.getElementById('productPrice').innerHTML = priceHtml;
+    
+    // Stock
+    const stockHtml = currentProduct.stock > 0 
+      ? `<span class="inline-block bg-green-100 text-green-700 px-4 py-2 rounded-full font-semibold">✓ In Stock (${currentProduct.stock} available)</span>`
+      : `<span class="inline-block bg-red-100 text-red-700 px-4 py-2 rounded-full font-semibold">✗ Out of Stock</span>`;
+    document.getElementById('productStock').innerHTML = stockHtml;
+    
+    // Main image
+    const mainImageSrc = currentProduct.main_image 
+      ? `/uploads/products/${currentProduct.main_image}` 
+      : 'https://placehold.co/600x600?text=Product';
+    document.querySelector('#mainImage img').src = mainImageSrc;
+    
+    // Image gallery - use gallery images from database or fallback to main image
+    let galleryImages = [];
+    
+    if(currentProduct.gallery && currentProduct.gallery.length > 0){
+      // Use gallery images from database
+      galleryImages = currentProduct.gallery.map(img => `/uploads/products/${img}`);
+    } else {
+      // Fallback to main image if no gallery images
+      galleryImages = [mainImageSrc];
+    }
+    
+    // Always include main image as first gallery item
+    if(currentProduct.main_image && !galleryImages.includes(mainImageSrc)){
+      galleryImages.unshift(mainImageSrc);
+    }
+    
+    // Create gallery HTML
+    const galleryHtml = galleryImages.map((imgSrc, index) => {
+      const activeClass = index === 0 ? 'active' : '';
+      return `<img src="${imgSrc}" class="gallery-image ${activeClass} w-full h-20 object-cover rounded-lg" onclick="changeMainImage('${imgSrc}')">`;
+    }).join('');
+    
+    document.getElementById('imageGallery').innerHTML = galleryHtml;
+    
+    // Load related products (same category or same shop)
+    const relatedProducts = allProducts.filter(p => 
+      p.id != currentProduct.id && 
+      (p.category === currentProduct.category || p.shop_name === currentProduct.shop_name)
+    ).slice(0, 6);
+    
+    document.getElementById('relatedProducts').innerHTML = relatedProducts.map(productCard).join('');
+    
+  } catch(err) {
+    console.error('Error loading product details:', err);
+    alert('Failed to load product details');
+    window.location.href = 'index.html';
+  }
+}
+
+function changeMainImage(src){
+  document.querySelector('#mainImage img').src = src;
+  document.querySelectorAll('.gallery-image').forEach(img => img.classList.remove('active'));
+  // Find the clicked image and add active class
+  document.querySelectorAll('.gallery-image').forEach(img => {
+    if(img.src === src || img.getAttribute('onclick').includes(src)){
+      img.classList.add('active');
+    }
+  });
+}
+
+/* ------------------------- INIT ------------------------- */
+loadProductDetails();
+updateCart();
+</script>
+</body>
+</html>
