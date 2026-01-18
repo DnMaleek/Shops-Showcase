@@ -25,8 +25,26 @@ async function loadProductDetails(){
     const allRes = await fetch("/api/products");
     allProducts = await allRes.json();
 
+    // Populate page titile
+    document.getElementById('product_detail').textContent = currentProduct.name;
+
     // Populate product details
-    document.getElementById('productName').textContent = currentProduct.name;
+    document.getElementById('productName').textContent = currentProduct.name
+
+        const brandEl = document.getElementById("productBrand");
+
+        if (
+        currentProduct.brand &&
+        currentProduct.brand !== "null" &&
+        currentProduct.brand.trim() !== ""
+        ) {
+        brandEl.textContent = `• ${currentProduct.brand}`;
+        brandEl.classList.remove("hidden");
+        } else {
+        brandEl.textContent = "";
+        brandEl.classList.add("hidden");
+        }
+
     document.getElementById('productCategory').textContent = currentProduct.category || 'Uncategorized';
     
     // Get shop name from allProducts since details endpoint might not include it
@@ -48,7 +66,7 @@ async function loadProductDetails(){
       const savings = ((1 - actualAmount/currentProduct.price) * 100).toFixed(0);
       priceHtml = `
         <div class="flex items-center gap-3">
-          <span class="text-2xl line-through text-gray-400">${currentProduct.price}</span>
+          ⚫️ <span class="text-2xl line-through text-gray-400">${currentProduct.price}</span>
           <span class="text-4xl font-bold text-blue-600">${moneyFormated(actualAmount)}</span>
           <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">Save ${savings}%</span>
         </div>`;

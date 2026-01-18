@@ -3,7 +3,7 @@ function productCard(p){
   let priceHtml = `$${p.price}`;
   const actualAmount = (p.price - (p.price * (p.discount/100)))
   if(p.discount && p.discount<p.price){
-    priceHtml=`<span class="line-through text-gray-400 mr-2">${p.price}</span><span class="text-blue-600 font-bold">${moneyFormated(actualAmount)}</span>`;
+    priceHtml=`⚫️ <span class="line-through text-gray-400 mr-2">${p.price}</span><span class="text-blue-600 font-bold">${moneyFormated(actualAmount)}</span>`;
   }
   const stockStatus = p.stock>0? `<span class="text-green-600 font-semibold text-sm">In Stock (${p.stock})</span>` : `<span class="text-red-600 font-semibold text-sm">Out of Stock</span>`;
   return `

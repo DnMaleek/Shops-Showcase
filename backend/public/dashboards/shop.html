@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Shop Details</title>
+  <title id="shop_detail">Shop Details</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <style>
@@ -143,7 +143,7 @@ async function loadShop() {
   const shop = await res.json();
 
   console.log(shop.logo);
-
+  document.getElementById('shop_detail').textContent = shop.shop_name;
   shopName.textContent = shop.shop_name;
   shopDesc.textContent = shop.description || "No description provided";
   shopEmail.textContent = `📧 ${shop.email}`;
