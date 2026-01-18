@@ -276,6 +276,7 @@ if (!localStorage.getItem("token")) {
 <!-- FOOTER -->
 <footer class="bg-white py-6 text-center text-gray-500 text-sm mt-10">© 2026 ShopZone</footer>
 
+
 <script>
 /* ------------------------- AUTH & NAV ------------------------- */
 function logout(){
@@ -346,36 +347,83 @@ function removeFromCart(index){
   updateCart(); 
 }
 
+function formatMoney(amount, currency = "TZS", locale = "sw-TZ") {
+  if (isNaN(amount)) return "0.00";
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currency,
+    minimumFractionDigits: 2
+  }).format(amount);
+}
+
+// Attach Add to Cart Button
+function attachCartButtons(){
+  document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
+    btn.onclick = () => {
+      const productId = btn.closest('[data-id]').dataset.id;
+      const product = allProducts.find(p => p.id == productId);
+
+      if (!product) return;
+
+      if (product.stock <= 0) {
+        alert("This product is out of stock");
+        return;
+      }
+
+      addToCart(product, 1);
+      openCart();
+    };
+  });
+}
+
+
+
 /* ------------------------- PRODUCT CARD ------------------------- */
 function productCard(p){
-  let priceHtml = `${p.price}`;
-  if(p.discount && p.discount<p.price){
-    priceHtml=`<span class="line-through text-gray-400 mr-2">${p.price}</span><span class="text-blue-600 font-bold">${p.discount}</span>`;
+  let priceHtml = `$${p.price}`;
+
+  if (p.discount && p.discount > 0) {
+    const discountedPrice = p.price - (p.price * p.discount / 100);
+
+    priceHtml = `
+      <span class="line-through text-gray-400 mr-2">${formatMoney(p.price)}</span>
+      <span class="text-blue-600 font-bold">${formatMoney(discountedPrice.toFixed(2))}</span>
+      <span class="text-red-500 text-sm font-semibold ml-2">${p.discount}% OFF</span>
+    `;
   }
-  const stockStatus = p.stock>0? `<span class="text-green-600 font-semibold text-sm">In Stock (${p.stock})</span>` : `<span class="text-red-600 font-semibold text-sm">Out of Stock</span>`;
+
+  const stockStatus = p.stock > 0
+    ? `<span class="text-green-600 font-semibold text-sm">In Stock (${p.stock})</span>`
+    : `<span class="text-red-600 font-semibold text-sm">Out of Stock</span>`;
+
   return `
-    <div data-id="${p.id}" class="product-item flex gap-4 items-center" onclick="window.location.href='product-details.html?id=${p.id}'" style="cursor: pointer;">
-      <img src="/uploads/products/${p.main_image || 'https://placehold.co/100x100?text=Product'}" class="w-24 h-24 object-cover rounded-lg">
+    <div data-id="${p.id}" 
+         class="product-item flex gap-4 items-center"
+         onclick="window.location.href='product-details.html?id=${p.id}'"
+         style="cursor:pointer;">
+
+      <img src="/uploads/products/${p.main_image || 'https://placehold.co/100x100?text=Product'}"
+           class="w-24 h-24 object-cover rounded-lg">
+
       <div class="flex-1">
         <h3 class="font-semibold text-base">${p.name}</h3>
-        <p class="text-sm text-gray-500">${p.category || 'Uncategorized'} • ${p.shop_name}</p>
+        <p class="text-sm text-gray-500">
+          ${p.category || 'Uncategorized'} • ${p.shop_name}
+        </p>
+
         <div class="mt-2 flex items-center gap-3">
           <span class="text-lg font-bold">${priceHtml}</span>
           ${stockStatus}
         </div>
       </div>
-      <button onclick="event.stopPropagation()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition add-to-cart-btn">Add to Cart</button>
-    </div>`;
-}
 
-function attachCartButtons(){
-  document.querySelectorAll(".add-to-cart-btn").forEach(btn=>{
-    btn.onclick=()=>{
-      const productId = btn.closest('[data-id]').getAttribute('data-id');
-      const product = allProducts.find(p=>p.id==productId);
-      if(product) addToCart(product);
-    };
-  });
+      <button
+        onclick="event.stopPropagation()"
+        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition add-to-cart-btn"
+        ${p.stock <= 0 ? 'disabled class="opacity-50 cursor-not-allowed"' : ''}>
+        Add to Cart
+      </button>
+    </div>`;
 }
 
 /* ------------------------- LOAD DATA ------------------------- */

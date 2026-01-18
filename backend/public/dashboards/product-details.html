@@ -144,7 +144,7 @@ if (!localStorage.getItem("token")) {
     <h1 class="text-2xl font-bold text-blue-600 cursor-pointer" onclick="window.location.href='index.html'">ShopZone</h1>
 
     <div class="flex gap-4 items-center">
-      <button onclick="window.location.href='index.html'" class="text-gray-600 hover:text-blue-600 font-medium">← Back to Shop</button>
+      <button onclick="window.location.href='dashboard-user.html'" class="text-gray-600 hover:text-blue-600 font-medium">← Back to Shop</button>
       <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold">Logout</button>
     </div>
   </div>
@@ -239,56 +239,17 @@ if (!localStorage.getItem("token")) {
 <!-- FOOTER -->
 <footer class="bg-white py-6 text-center text-gray-500 text-sm mt-10">© 2026 ShopZone</footer>
 
+
+<script src="js/customer/product-details.js"></script>
+<script src="js/customer/cart.js"></script>
+<script src="js/customer/product-cart.js"></script>
+<script src="js/customer/logout.js"></script>
 <script>
 /* ------------------------- GLOBAL ------------------------- */
 let currentProduct = null;
 let allProducts = [];
-let cart = JSON.parse(localStorage.getItem('cart') || '[]');
 let quantity = 1;
 const cartPanel = document.getElementById("cartPanel");
-
-/* ------------------------- AUTH & NAV ------------------------- */
-function logout(){
-  localStorage.removeItem("token");
-  window.location.href = "/login/login.html";
-}
-
-/* ------------------------- CART ------------------------- */
-function openCart(){ cartPanel.classList.add("open"); }
-function closeCart(){ cartPanel.classList.remove("open"); }
-
-function updateCart(){
-  const container = document.getElementById("cartItems");
-  container.innerHTML = "";
-  let total = 0;
-  cart.forEach((item,index)=>{
-    const price = item.discount && item.discount<item.price ? item.discount : item.price;
-    const itemTotal = price*item.qty;
-    total+=itemTotal;
-    container.innerHTML += `
-      <div class="cart-item flex gap-2 items-center p-2">
-        <img src="/uploads/products/${item.main_image || 'https://placehold.co/50x50?text=Product'}" class="w-12 h-12 object-cover rounded">
-        <div class="flex-1">
-          <p class="text-sm font-semibold">${item.name}</p>
-          <p class="text-xs text-gray-500">$${price.toFixed(2)} x ${item.qty}</p>
-        </div>
-        <button onclick="removeFromCart(${index})" class="text-red-500 font-bold">&times;</button>
-      </div>`;
-  });
-  document.getElementById("cartTotal").textContent = total.toFixed(2);
-  localStorage.setItem('cart', JSON.stringify(cart));
-}
-
-function addToCart(product, qty = 1){
-  const existing = cart.find(p=>p.id===product.id);
-  if(existing){ existing.qty += qty; } else{ cart.push({...product, qty: qty}); }
-  updateCart();
-}
-
-function removeFromCart(index){ 
-  cart.splice(index,1); 
-  updateCart(); 
-}
 
 /* ------------------------- QUANTITY ------------------------- */
 function increaseQty(){
@@ -305,14 +266,6 @@ function decreaseQty(){
   }
 }
 
-/* ------------------------- ADD TO CART ------------------------- */
-function addToCartFromDetails(){
-  if(currentProduct){
-    addToCart(currentProduct, quantity);
-    openCart();
-  }
-}
-
 function buyNow(){
   if(currentProduct){
     addToCart(currentProduct, quantity);
@@ -321,161 +274,14 @@ function buyNow(){
   }
 }
 
-/* ------------------------- PRODUCT CARD FOR RELATED ------------------------- */
-function productCard(p){
-  let priceHtml = `$${p.price}`;
-  if(p.discount && p.discount<p.price){
-    priceHtml=`<span class="line-through text-gray-400 mr-2">$${p.price}</span><span class="text-blue-600 font-bold">$${p.discount}</span>`;
-  }
-  const stockStatus = p.stock>0? `<span class="text-green-600 font-semibold text-sm">In Stock (${p.stock})</span>` : `<span class="text-red-600 font-semibold text-sm">Out of Stock</span>`;
-  return `
-    <div data-id="${p.id}" class="product-item flex gap-4 items-center" onclick="goToProduct(${p.id})">
-      <img src="/uploads/products/${p.main_image || 'https://placehold.co/100x100?text=Product'}" class="w-24 h-24 object-cover rounded-lg">
-      <div class="flex-1">
-        <h3 class="font-semibold text-base">${p.name}</h3>
-        <p class="text-sm text-gray-500">${p.category || 'Uncategorized'} • ${p.shop_name}</p>
-        <div class="mt-2 flex items-center gap-3">
-          <span class="text-lg font-bold">${priceHtml}</span>
-          ${stockStatus}
-        </div>
-      </div>
-      <button onclick="event.stopPropagation(); quickAddToCart(${p.id})" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">Add to Cart</button>
-    </div>`;
+function moneyFormated(amount, locale="sw-TZ") {
+  return new Intl.NumberFormat(locale, {
+    style:"currency",
+    currency: "TZS",
+    minimumFractionDigits: 2
+  }).format(amount)
 }
 
-function goToProduct(productId){
-  window.location.href = `product-details.html?id=${productId}`;
-}
-
-function quickAddToCart(productId){
-  const product = allProducts.find(p => p.id == productId);
-  if(product){
-    addToCart(product, 1);
-    openCart();
-  }
-}
-
-/* ------------------------- LOAD PRODUCT DETAILS ------------------------- */
-async function loadProductDetails(){
-  // Get product ID from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const productId = urlParams.get('id');
-  
-  if(!productId){
-    window.location.href = 'index.html';
-    return;
-  }
-
-  try {
-    // Fetch product details with gallery images
-    const detailsRes = await fetch(`/api/products/${productId}/details`);
-    const productDetails = await detailsRes.json();
-    
-    if(!productDetails){
-      window.location.href = 'index.html';
-      return;
-    }
-
-    currentProduct = productDetails;
-
-    // Fetch all products for related products section
-    const allRes = await fetch("/api/products");
-    allProducts = await allRes.json();
-
-    // Populate product details
-    document.getElementById('productName').textContent = currentProduct.name;
-    document.getElementById('productCategory').textContent = currentProduct.category || 'Uncategorized';
-    
-    // Get shop name from allProducts since details endpoint might not include it
-    const fullProduct = allProducts.find(p => p.id == productId);
-    if(fullProduct){
-      document.getElementById('productShop').textContent = fullProduct.shop_name;
-      document.getElementById('productShop').onclick = () => window.location.href = `shop.html?id=${fullProduct.shop_id}`;
-      currentProduct.shop_name = fullProduct.shop_name;
-      currentProduct.shop_id = fullProduct.shop_id;
-    }
-    
-    // Description
-    document.getElementById('productDescription').textContent = currentProduct.description || 'No description available for this product.';
-    
-    // Price
-    let priceHtml = `<span class="text-4xl font-bold text-gray-800">${currentProduct.price}</span>`;
-    if(currentProduct.discount && currentProduct.discount < currentProduct.price){
-      const savings = ((1 - currentProduct.discount/currentProduct.price) * 100).toFixed(0);
-      priceHtml = `
-        <div class="flex items-center gap-3">
-          <span class="text-2xl line-through text-gray-400">${currentProduct.price}</span>
-          <span class="text-4xl font-bold text-blue-600">${currentProduct.discount}</span>
-          <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">Save ${savings}%</span>
-        </div>`;
-    }
-    document.getElementById('productPrice').innerHTML = priceHtml;
-    
-    // Stock
-    const stockHtml = currentProduct.stock > 0 
-      ? `<span class="inline-block bg-green-100 text-green-700 px-4 py-2 rounded-full font-semibold">✓ In Stock (${currentProduct.stock} available)</span>`
-      : `<span class="inline-block bg-red-100 text-red-700 px-4 py-2 rounded-full font-semibold">✗ Out of Stock</span>`;
-    document.getElementById('productStock').innerHTML = stockHtml;
-    
-    // Main image
-    const mainImageSrc = currentProduct.main_image 
-      ? `/uploads/products/${currentProduct.main_image}` 
-      : 'https://placehold.co/600x600?text=Product';
-    document.querySelector('#mainImage img').src = mainImageSrc;
-    
-    // Image gallery - use gallery images from database or fallback to main image
-    let galleryImages = [];
-    
-    if(currentProduct.gallery && currentProduct.gallery.length > 0){
-      // Use gallery images from database
-      galleryImages = currentProduct.gallery.map(img => `/uploads/products/${img}`);
-    } else {
-      // Fallback to main image if no gallery images
-      galleryImages = [mainImageSrc];
-    }
-    
-    // Always include main image as first gallery item
-    if(currentProduct.main_image && !galleryImages.includes(mainImageSrc)){
-      galleryImages.unshift(mainImageSrc);
-    }
-    
-    // Create gallery HTML
-    const galleryHtml = galleryImages.map((imgSrc, index) => {
-      const activeClass = index === 0 ? 'active' : '';
-      return `<img src="${imgSrc}" class="gallery-image ${activeClass} w-full h-20 object-cover rounded-lg" onclick="changeMainImage('${imgSrc}')">`;
-    }).join('');
-    
-    document.getElementById('imageGallery').innerHTML = galleryHtml;
-    
-    // Load related products (same category or same shop)
-    const relatedProducts = allProducts.filter(p => 
-      p.id != currentProduct.id && 
-      (p.category === currentProduct.category || p.shop_name === currentProduct.shop_name)
-    ).slice(0, 6);
-    
-    document.getElementById('relatedProducts').innerHTML = relatedProducts.map(productCard).join('');
-    
-  } catch(err) {
-    console.error('Error loading product details:', err);
-    alert('Failed to load product details');
-    window.location.href = 'index.html';
-  }
-}
-
-function changeMainImage(src){
-  document.querySelector('#mainImage img').src = src;
-  document.querySelectorAll('.gallery-image').forEach(img => img.classList.remove('active'));
-  // Find the clicked image and add active class
-  document.querySelectorAll('.gallery-image').forEach(img => {
-    if(img.src === src || img.getAttribute('onclick').includes(src)){
-      img.classList.add('active');
-    }
-  });
-}
-
-/* ------------------------- INIT ------------------------- */
-loadProductDetails();
-updateCart();
 </script>
 </body>
 </html>
